@@ -1,1 +1,17 @@
-ErrorDocument 404 404.php
+
+RewriteEngine On
+
+# Disable directory listing to prevent file exposure
+Options -Indexes
+
+# Redirect any 404 error to the custom 404 page
+ErrorDocument 404 /o_data/404.php
+
+# Redirect non-existing files and directories to 404.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule .* /o_data/404.php [L,R=404]
+
+# Allow access to existing directories
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule .* - [L]
