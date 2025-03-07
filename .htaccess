@@ -1,1 +1,9 @@
+RewriteEngine On
+
+# ئەگەر فایل یان فۆڵدەر نەبوو، بچۆ بۆ `404.php`
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule .* /views/404.php [L]
+
+# Redirect هەر 404 بۆ `404.php`
 ErrorDocument 404 /views/404.php
