@@ -82,55 +82,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="ku">
 <head>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
-
-<!-- Tailwind CSS -->
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.2.4/dist/tailwind.min.css" rel="stylesheet">
-
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- RTL Support -->
-<style>
-    body {
-        direction: rtl;
-        font-family: 'Zain', sans-serif;
-    }
-</style>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بۆتی تیلیگرام</title>
-    <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
-    <h2>بۆتی تیلیگرام</h2>
     
-    <form method="POST">
-        <button type="submit" name="send_pending_tasks">📢 ناردنی ئەرکە تەواو نەکراوەکان</button>
-    </form>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            direction: rtl;
+            font-family: 'Zain', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-6">
+    <div class="max-w-2xl w-full bg-white shadow-lg rounded-lg p-8">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">بۆتی تیلیگرام</h2>
+        
+        <form method="POST" class="mb-6">
+            <button type="submit" name="send_pending_tasks" class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition" onclick="showPopup('pending')">
+                📢 ناردنی ئەرکە تەواو نەکراوەکان
+            </button>
+        </form>
+        
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            <h3 class="text-xl font-semibold text-gray-700">📨 ناردنی پەیامی تایبەتی</h3>
+            
+            <div>
+                <label class="block text-gray-700 font-medium">👤 ناو:</label>
+                <input type="text" name="name" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium">💬 پەیام:</label>
+                <textarea name="message" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium">📎 بارکردنی فایل:</label>
+                <input type="file" name="file" class="w-full border border-gray-300 rounded-lg p-3">
+            </div>
+            
+            <button type="submit" name="send_custom_message" class="w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition" onclick="showPopup('custom')">
+                📤 ناردنی پەیام
+            </button>
+        </form>
+    </div>
 
-    <form method="POST" enctype="multipart/form-data">
-        <h3>📨 ناردنی پەیامی تایبەتی</h3>
-        <label>👤 ناو:</label>
-        <input type="text" name="name" required>
+    <!-- Popup Notification -->
+    <div id="popup" class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <p id="popup-message" class="text-lg font-semibold text-gray-800">✅ پەیامەکەت بە سەرکەوتوویی نێردرا!</p>
+        </div>
+    </div>
 
-        <label>💬 پەیام:</label>
-        <textarea name="message" required></textarea>
-
-        <label>📎 بارکردنی فایل:</label>
-        <input type="file" name="file">
-
-        <button type="submit" name="send_custom_message">📤 ناردنی پەیام</button>
-    </form>
-
-<!-- Bootstrap Bundle JS (including Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script>
+        function showPopup(type) {
+            const popup = document.getElementById("popup");
+            const message = document.getElementById("popup-message");
+            
+            if (type === 'pending') {
+                message.textContent = "✅ ئەرکەکان بە سەرکەوتوویی نێردران!";
+            } else {
+                message.textContent = "✅ پەیامەکەت بە سەرکەوتوویی نێردرا!";
+            }
+            
+            popup.classList.remove("hidden");
+            
+            setTimeout(() => {
+                popup.classList.add("hidden");
+            }, 2000);
+        }
+    </script>
 </body>
 </html>

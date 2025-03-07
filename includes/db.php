@@ -32,6 +32,7 @@ try {
 } catch (Exception $e) {
     die("کێشە لە پەیوەندی بە داتابەیس: " . $e->getMessage());
 }
+
 ?>
 
 
