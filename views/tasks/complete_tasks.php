@@ -17,10 +17,3 @@ if (isset($_GET['id'])) {
     header('Location: ../views/completed_tasks.php');
     exit();
 }
-
-
-
-// Adding completion_date column to tasks table
-$alter_table_query = "ALTER TABLE tasks ADD COLUMN completion_date DATETIME";
-mysqli_query($conn, $alter_table_query);
-?>
