@@ -1,0 +1,23 @@
+/* Add styling and ensure responsiveness */
+
+/* filepath: /c:/xampp/htdocs/o_data/css/styles.css */
+
+body {
+    font-family: 'Calibri', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+a {
+    display: block;
+    margin: 10px 0;
+}
+
+form {
+    margin: 20px 0;
+}
+
+input, button {
+    display: block;
+    margin: 10px 0;
+}

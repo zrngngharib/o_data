@@ -1,0 +1,20 @@
+C:\xampp\apache\conf\httpd.conf
+
++Listen 192.168.1.10:5000
++Listen :80
+-ServerName localhost:80   
++ServerName 192.168.1.10:5000
+
+
+C:\xampp\apache\conf\extra\httpd-vhosts.conf
+
+<VirtualHost *:80>
+    DocumentRoot "C:/xampp/htdocs/o_data"
+    ServerName 192.168.1.10
+    <Directory "C:/xampp/htdocs/o_data">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+
