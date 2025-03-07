@@ -25,7 +25,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لیستی چاوەڕوانی کارەکان  ⏳</title>
+    <title>کارە چاوەڕوانەکان ⏳</title>
 
     <!-- فۆنتی Zain لە گۆگڵ فۆنتس -->
     <link href="https://fonts.googleapis.com/css2?family=Zain:ital,wght@0,200;0,300;0,400;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@ if (!$result) {
 <body class="bg-gray-100 font-[Zain] text-right">
 
     <div class="container mx-auto p-6">
-        <h1 class="text-3xl text-blue-700 text-center font-bold mb-6">لیستی چاوەڕوانی کارەکان ⏳</h1>
+        <h1 class="text-3xl text-blue-700 text-center font-bold mb-6">کارە چاوەڕوانەکان ⏳</h1>
 
         <!-- Dropdown بۆ ڕیزبەندی -->
         <div class="relative inline-block text-left mb-4">
@@ -69,7 +69,6 @@ if (!$result) {
                         <th class="px-4 py-2">حاڵەت 📊</th>
                         <th class="px-4 py-2">نرخ 💰</th>
                         <th class="px-4 py-2">بەروار 📅</th>
-                        <th class="px-4 py-2">کردار ⚙️</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,11 +89,6 @@ if (!$result) {
                             </td>
                             <td class="px-4 py-2"><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
                             <td class="px-4 py-2"><?= htmlspecialchars($row['date']) ?></td>
-                            <td class="px-4 py-2">
-                                <a href="complete_task.php?id=<?= $row['id'] ?>" class="bg-green-500 text-white px-3 py-1 rounded-lg">
-                                    <i class="fas fa-check-circle"></i> تەواوکردن
-                                </a>
-                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
