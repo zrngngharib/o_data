@@ -23,7 +23,7 @@
         <h1 class="text-6xl font-bold text-red-500">404</h1>
         <h2 class="text-2xl font-semibold text-gray-800 mt-4">لاپەڕە نەدۆزرایەوە</h2>
         <p class="text-gray-600 mt-2">ببورە، ئەو لاپەڕەی کە دەگەڕێیت پێی نەدۆزرایەوە.</p>
-        <a href="/views/dashboard.php" class="mt-6 inline-block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition">گەڕانەوە بۆ سەرەکی</a>
+        <a href="/o_data/views/dashboard.php" class="mt-6 inline-block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition">گەڕانەوە بۆ سەرەکی</a>
     </div>
 </body>
 </html>
