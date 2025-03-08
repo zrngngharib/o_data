@@ -7,7 +7,9 @@ ini_set('display_errors', 1);
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-include "../includes/db.php"; // پەیوەندی بە داتابەیس
+
+// Use absolute path for including db.php
+include __DIR__ . '/../includes/db.php'; // پەیوەندی بە داتابەیس
 
 // Check database connection
 if (!$conn) {
@@ -46,10 +48,6 @@ if ($result) {
 if (!$row) {
     die("No data found");
 }
-
-// Debugging output
-echo "In-progress tasks count: " . $in_progress_tasks_count;
-
 // Fetch in-progress tasks from the database
 $in_progress_tasks = [];
 $query_in_progress = "SELECT * FROM tasks WHERE status = 'in_progress'";

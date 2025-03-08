@@ -1,17 +1,14 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
-include '../../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
+include '../../includes/db.php'; // ڕێڕەوی دروست بۆ db.php
 
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    echo "<pre>";
-    print_r($_POST);
-    echo "</pre>";
-}
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // تاقیکردنەوەی ئەوەی کە فۆڕمێک نێردراوە
     if (!isset($_POST['task_name']) || empty($_POST['task_name'])) {
@@ -20,28 +17,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $task_name = $_POST['task_name'] ?? '';
         $task_number = $_POST['task_number'] ?? '';
         $location = $_POST['location'] ?? '';
-        $employees = implode(',', $_POST['employees'] ?? []);
+        $employee = implode(',', $_POST['employee'] ?? []);
         $mobile_number = $_POST['mobile_number'] ?? '';
         $team = $_POST['team'] ?? 'تەکنیکی';
         $status = $_POST['status'] ?? 'Pending';
         $cost = $_POST['cost'] ?? '';
         $currency = $_POST['currency'] ?? 'IQD';
         $date = $_POST['date'] ?? date('Y-m-d H:i:s');
+        $date = date('Y-m-d H:i:s', strtotime($date));
 
-        // هەڵەکان دیاریبکەوە
-        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date) 
-                  VALUES ('$task_name', '$task_number', '$location', '$employees', '$mobile_number', '$team', '$status', '$cost', '$currency', '$date')";
-
-        if (mysqli_query($conn, $query)) {
-            echo "<p style='color: green;'>کارەکە زیاد کرا</p>";
-            header('refresh:1;url=../tasks.php'); // دوای ٢1 چرکە بەرگەردە `tasks.php`
-            exit();
-        } else {
-            echo "<p style='color: red;'>هەڵە لە زیادکردنی داتا: " . mysqli_error($conn) . "</p>";
+        // Handle file uploads
+        $uploadDir = 'att/uploads/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true); // create folder if not exists
         }
+
+        $uploadedFiles = [];
+        foreach ($_FILES['files']['name'] as $key => $name) {
+            if ($_FILES['files']['error'][$key] == UPLOAD_ERR_OK) {
+                $tmpName = $_FILES['files']['tmp_name'][$key];
+                $fileExtension = pathinfo($name, PATHINFO_EXTENSION);
+
+                // Use the original filename instead of creating a new one
+                $newFileName = $name; // Use original filename
+                $filePath = $uploadDir . $newFileName;
+
+                if (move_uploaded_file($tmpName, $filePath)) {
+                    $uploadedFiles[] = $filePath;
+                } else {
+                    echo "<p style='color: red;'>هەڵە لە بارکردنی فایل: $name</p>";
+                }
+            }
+        }
+
+        // Prepare the SQL query
+        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date, files)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = mysqli_prepare($db, $query);
+        $files = implode(',', $uploadedFiles);
+        mysqli_stmt_bind_param($stmt, 'sssssssssss', $task_name, $task_number, $location, $employee, $mobile_number, $team, $status, $cost, $currency, $date, $files);
+
+        // Execute the query
+        if (mysqli_stmt_execute($stmt)) {
+            echo "<script>alert('کارەکە زیاد کرا'); setTimeout(function(){ window.location.href = '../../views/tasks.php'; }, 1000);</script>";
+        } else {
+            echo "<p style='color: red;'>هەڵە: ناتوانرا فایلی نوێ بنووسرێت.</p>";
+            echo "<p style='color: red;'>MySQL Error: " . mysqli_error($db) . "</p>";
+        }
+
+        mysqli_stmt_close($stmt);
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="ku">
 <head>
@@ -117,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="container mt-5">
         <h1 class="text-3xl text-blue-700 text-center font-bold mb-6">زیادکردنی ئەرك📝</h1>
         <div class="form-container">
-            <form method="POST" action="add_task.php">
+            <form method="POST" action="add_task.php" enctype="multipart/form-data">
                 <div class="mb-4">
                     <label for="task_name" class="text-lg font-bold">ناوی ئەرك:</label>
                     <input type="text" name="task_name" class="form-input" required>
@@ -131,9 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <input type="text" name="location" class="form-input">
                 </div>
                 <div class="mb-4">
-                    <label for="employees" class="text-lg font-bold">کارمەند:</label>
+                    <label for="employee" class="text-lg font-bold">کارمەند:</label>
                     <div id="employee_fields">
-                        <input type="text" name="employees[]" class="form-input">
+                        <input type="text" name="employee[]" class="form-input">
                     </div>
                     <button type="button" class="btn btn-primary mt-2" onclick="addEmployeeField()">+ کارمەندی زیاتری</button>
                 </div>
@@ -184,7 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="mb-4">
                     <label for="date" class="text-lg font-bold">بەروار:</label>
-                    <input type="datetime-local" name="date" class="form-input" value="<?= date('Y-m-d\\TH:i') ?>">
+                    <input type="datetime-local" name="date" class="form-input" value="<?php echo date('Y-m-d\TH:i'); ?>">
+                </div>
+                <div class="mb-4">
+                    <input type="file" name="files[]" multiple>
                 </div>
                 <button type="submit" class="custom-button">زیادکردن ➕</button>
             </form>
@@ -194,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script>
         function addEmployeeField() {
             var div = document.createElement("div");
-            div.innerHTML = '<input type="text" name="employees[]" class="form-input">';
+            div.innerHTML = '<input type="text" name="employee[]" class="form-input">';
             document.getElementById("employee_fields").appendChild(div);
         }
     </script>

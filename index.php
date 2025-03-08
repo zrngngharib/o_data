@@ -20,7 +20,7 @@
 // ڕێچکەی پەڕگە: /c:/xampp/htdocs/o_data/index.php
 
 // تێکەڵکردنی پەیوەندیدانی بنکەی داتا
-include 'includes/db.php';
+include 'includes/db.php'; // ڕێڕەوی دروست بۆ db.php
 
 // دەستپێکردنی ئینتەرنێت
 session_start();
