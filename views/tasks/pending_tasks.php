@@ -59,53 +59,45 @@ if (!$result) {
             <table class="min-w-full bg-white border border-gray-300 shadow-lg rounded-lg">
                 <thead>
                     <tr class="bg-blue-600 text-white">
-                        <th class="px-4 py-2">ID</th>
-                        <th class="px-4 py-2">ئەرك 📝</th>
-                        <th class="px-4 py-2">ژمارە 🔢</th>
-                        <th class="px-4 py-2">شوێن 📍</th>
-                        <th class="px-4 py-2">کارمەند 👤</th>
-                        <th class="px-4 py-2">ژمارە مۆبایل 📱</th>
-                        <th class="px-4 py-2">تیم 👥</th>
-                        <th class="px-4 py-2">حاڵەت 📊</th>
-                        <th class="px-4 py-2">نرخ 💰</th>
-                        <th class="px-4 py-2">بەروار 📅</th>
+                        <th class="px-1 py-2">ID</th>
+                        <th class="px-2 py-2">ئەرك 📝</th>
+                        <th class="px-1 py-2">ژمارە 🔢</th>
+                        <th class="px-2 py-2">شوێن 📍</th>
+                        <th class="px-2 py-2">کارمەند 👤</th>
+                        <th class="px-2 py-2">تیم 👥</th>
+                        <th class="px-2 py-2">حاڵەت 📊</th>
+                        <th class="px-2 py-2">بەروار 📅</th>
+                        <th class="px-2 py-2">تێپەڕبوون</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($result)) : ?>
-                        <tr class="border-t">
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['id']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['task_name']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['task_number']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['location']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['employee']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['mobile_number']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['team']) ?></td>
-                            <td class="px-4 py-2">
+                    <?php while ($row = mysqli_fetch_assoc($result)) { 
+                        $task_date = new DateTime($row['date']);
+                        $current_date = new DateTime();
+                        $interval = $current_date->diff($task_date);
+                        $days_passed = $interval->days;
+                    ?>
+                        <tr class="border-t" data-days="<?= $days_passed ?>">
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['id']) ?></td>
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['task_name']) ?></td>
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['task_number']) ?></td>
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['location']) ?></td>
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['employee']) ?></td>
+                            <td class="p-1"><?= $row['team'] ?></td>
+                            <td class="px-1 py-2">
                                 <span class="px-2 py-1 rounded-full text-white text-xs 
                                     <?= $row['status'] == 'Pending' ? 'bg-yellow-500' : 'bg-blue-500' ?>">
                                     <?= htmlspecialchars($row['status']) ?>
                                 </span>
                             </td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
-                            <td class="px-4 py-2"><?= htmlspecialchars($row['date']) ?></td>
+                            <td class="px-1 py-2"><?= htmlspecialchars($row['date']) ?></td>
+                            <td class="px-1 py-2"><?= $days_passed ?> ڕۆژ</td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <!-- JavaScript بۆ کارکردنی Dropdown -->
-    <script>
-        function toggleDropdown() {
-            document.getElementById('dropdownMenu').classList.toggle('hidden');
-        }
-
-        function sortTable(order) {
-            window.location.href = "?order=" + order;
-        }
-    </script>
 
     <!-- FontAwesome بۆ Icon -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>

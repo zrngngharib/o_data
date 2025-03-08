@@ -28,7 +28,7 @@ if (isset($_GET['sort'])) {
 
 
 // پەیجینەیشن
-$tasks_per_page = 10;
+$tasks_per_page = 20;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $tasks_per_page;
 
@@ -134,7 +134,7 @@ $total_completed = $row_completed['total'];
             direction: rtl;
         }
         th, td {
-            padding: 12px;
+            padding: 5px;
             text-align: right;
             border-bottom: 1px solid #ddd;
             justify-content: center
@@ -186,7 +186,8 @@ $total_completed = $row_completed['total'];
         }
 
         .fab:hover {
-            background: #0056b3;
+            background:rgb(0, 164, 179);
+            color: white;
         }
     </style>
 
@@ -265,34 +266,34 @@ $total_completed = $row_completed['total'];
         <div class="table-container overflow-x-auto bg-white shadow-lg rounded-lg">
         <table id="tasksTable" class="w-full border-collapse border border-gray-300">
         <thead>
-            <tr class="bg-gray-200 text-gray-700 text-center">
-                <th class="p-3">🎯</th>
-                <th class="p-3">ID</th>
-                <th class="p-3">ئەرك</th>
-                <th class="p-3">ژمارە</th>
-                <th class="p-3">شوێن</th>
-                <th class="p-3">کارمەند</th>
-                <th class="p-3">ژمارە مۆبایل</th>
-                <th class="p-3">تیم</th>
-                <th class="p-3">حاڵەت</th>
-                <th class="p-3">نرخ</th>
-                <th class="p-3">بەروار</th>
-                <th class="p-3"> ⚙️ کردارەکان</th>
+            <tr class="bg-gray-200 text-gray-700 text-right">
+                <th class="p-2">🎯</th>
+                <th class="p-2">ID</th>
+                <th class="p-4">ئەرك</th>
+                <th class="p-2">ژمارە</th>
+                <th class="p-2">شوێن</th>
+                <th class="p-2">کارمەند</th>
+                <th class="p-2">ژمارە مۆبایل</th>
+                <th class="p-2">تیم</th>
+                <th class="p-4">حاڵەت</th>
+                <th class="p-2">نرخ</th>
+                <th class="p-2">بەروار</th>
+                <th class="p-2">کردارەکان</th>
             </tr>
         </thead>
         <tbody>
             <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-            <tr class="border-t text-center hover:bg-gray-100">
-                <td class="p-3"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
-                <td class="p-3"><?= $row['id'] ?></td>
-                <td class="p-3"><?= $row['task_name'] ?></td>
-                <td class="p-3"><?= $row['task_number'] ?></td>
-                <td class="p-3"><?= $row['location'] ?></td>
-                <td class="p-3"><?= $row['employee'] ?></td>
-                <td class="p-3"><?= $row['mobile_number'] ?></td>
-                <td class="p-3"><?= $row['team'] ?></td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded-5 text-white text-xs 
+            <tr class="border-t text-right hover:bg-gray-100">
+                <td class="p-1"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
+                <td class="p-1"><?= $row['id'] ?></td>
+                <td class="p-1"><?= $row['task_name'] ?></td>
+                <td class="p-2"><?= $row['task_number'] ?></td>
+                <td class="p-1"><?= $row['location'] ?></td>
+                <td class="p-1"><?= $row['employee'] ?></td>
+                <td class="p-1"><?= $row['mobile_number'] ?></td>
+                <td class="p-1"><?= $row['team'] ?></td>
+                <td class="p-0">
+                    <span class="px-1 py-1 rounded-5 text-white text-xs 
                         <?php 
                             if ($row['status'] == 'Pending') {
                                 echo 'bg-yellow-500';
@@ -305,11 +306,11 @@ $total_completed = $row_completed['total'];
                         <?= htmlspecialchars($row['status']) ?>
                     </span>
                 </td>
-                <td class="p-3"><?= $row['cost'] ?> <?= $row['currency'] ?></td>
-                <td class="p-3"><?= $row['date'] ?></td>
-                <td class="p-3 flex justify-center gap-2">
-                    <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white rounded-lg hover:bg-blue-700">✏️</a>
-                    <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white rounded-lg hover:bg-green-700">📋</a>
+                <td class="p-1"><?= $row['cost'] ?> <?= $row['currency'] ?></td>
+                <td class="p-1"><?= $row['date'] ?></td>
+                <td class="p-1 flex justify-center gap-2">
+                    <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-2 py-1 text-white rounded-lg hover:bg-blue-700">✏️</a>
+                    <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-2 py-1 text-white rounded-lg hover:bg-green-700">📋</a>
                 </td>
             </tr>
             <?php } ?>
@@ -326,12 +327,11 @@ $total_completed = $row_completed['total'];
 
     <!-- Bootstrap Bundle JS (including Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     </div>
-
-<div class="fab" onclick="window.location.href='tasks/add_task.php'">
+    
+    <div class="fab" onclick="window.location.href='tasks/add_task.php'">
     <i class="fas fa-plus"></i>
-</div>
+    </div>
 
 </body>
 </html>
