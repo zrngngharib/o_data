@@ -26,6 +26,7 @@ if (isset($_GET['sort'])) {
     }
 }
 
+
 // پەیجینەیشن
 $tasks_per_page = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -64,6 +65,7 @@ $row_completed = mysqli_fetch_assoc($result_completed);
 $total_completed = $row_completed['total'];
 ?>
 
+
 <!DOCTYPE html>
 <html lang="ku">
 <head>
@@ -83,6 +85,22 @@ $total_completed = $row_completed['total'];
             font-family: 'Zain', sans-serif;
             background-color: #f9fafb;
         }
+            /* حاڵەت (Status) بە ڕەنگ جیاکراوە */
+       .status-pending {
+            color: #f59e0b; /* text-yellow-500 */
+            font-weight: bold;
+           }
+
+        .status-in-progress {
+            color: #3b82f6; /* text-blue-500 */
+            font-weight: bold;
+           }
+
+        .status-completed {
+            color: #10b981; /* text-green-500 */
+            font-weight: bold;
+        }
+
         .table-container {
             overflow-x: auto;
             background: white;
@@ -99,50 +117,65 @@ $total_completed = $row_completed['total'];
         .pagination {
             justify-content: center;
         }
+
+        /* جیاکردنەوەی دوگمەکان بەرەوپێش */
         .action-buttons {
             display: flex;
             gap: 10px;
         }
+    
+        /* شێوەی تایبەتی بۆ دوگمەکان */
         .custom-button {
-            color: white;
-            background-color: rgb(16, 0, 49);
+            display: inline-block;
+            padding: 10px 16px;
             border-radius: 50px;
-            font-size: 0.75rem;
-            padding: 0.5rem 1rem;
+            font-size: 14px;
+            color: white;
             text-align: center;
+            color: #000;
             transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            border: none;
+            cursor: pointer;   
         }
+
         .custom-button:hover {
             background-color: #4f36c7;
+            color: white;
         }
-        .back-button {
-            background-color: #e74c3c;
-        }
-        .back-button:hover {
-            background-color: #c0392b;
-        }
+    
+    
+        /* شێوەی خشتە */
         table {
             width: 100%;
             border-collapse: collapse;
+            border: 1px solid #ddd;
+            
         }
         table th, table td {
             padding: 10px;
             text-align: center;
+            border: 1px solid #ddd;
         }
         table tr:hover {
-            background-color: #f5f5f5;
+            background-color:rgb(207, 207, 207);
         }
         table thead th {
-            background-color: #f0f0f0;
+            background-color: #f0f0f0; /* Light gray background color */
         }
         .button-container {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            justify-content: center; /* Center the buttons */
+            gap: 10px; /* Add some space between buttons */
             padding: 0 0 10px 0px;
+        }
+
+        .pagination a {
+        padding: 4px 6px 4px 6px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #2563eb;
+        transition: all 0.3s ease;
         }
     </style>
 
@@ -165,102 +198,102 @@ $total_completed = $row_completed['total'];
             <input type="text" id="search" class="form-control" placeholder="🔍 گەڕان بپێی ئەرك، ژمارە، شوێن، كارمەند..." onkeyup="searchTasks()">
         </div>
         <script>
-            function searchTasks() {
-                const input = document.getElementById('search');
-                const filter = input.value.toLowerCase();
-                const table = document.getElementById('tasksTable');
-                const tr = table.getElementsByTagName('tr');
+    function searchTasks() {
+        const input = document.getElementById('search');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('tasksTable');
+        const tr = table.getElementsByTagName('tr');
 
-                for (let i = 1; i < tr.length; i++) {
-                    tr[i].style.display = 'none';
-                    const td = tr[i].getElementsByTagName('td');
-                    for (let j = 1; j < td.length; j++) {
-                        if (td[j]) {
-                            if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
-                                tr[i].style.display = '';
-                                break;
-                            }
-                        }
+        for (let i = 1; i < tr.length; i++) {
+            tr[i].style.display = 'none';
+            const td = tr[i].getElementsByTagName('td');
+            for (let j = 1; j < td.length; j++) {
+                if (td[j]) {
+                    if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                        break;
                     }
                 }
             }
-        </script>
+        }
+    }
+</script>
 
         <div class="d-flex justify-content-between mb-4">
-            <div class="d-flex align-items-center">
-                <label class="me-2">ڕیزبەندی:</label>
-                <select id="sort" class="form-select w-auto" onchange="updateSort()">
-                    <option value="newest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'newest') echo 'selected'; ?>>نوێترین</option>
-                    <option value="oldest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'oldest') echo 'selected'; ?>>کۆنترین</option>
-                    <option value="pending" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'pending') echo 'selected'; ?>>Pending</option>
-                    <option value="in_progress" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'in_progress') echo 'selected'; ?>>In Progress</option>
-                </select>
-            </div>
-            <div class="d-flex justify-content-start">
-                <span>بڕۆ بۆ لاپەڕەی: </span>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        <?php
-                        for ($i = 1; $i <= $total_pages; $i++) {
-                            $active = ($i == $page) ? 'active' : '';
-                            echo "<li class='page-item $active'><a class='page-link' href='tasks.php?page=$i&sort=" . (isset($_GET['sort']) ? $_GET['sort'] : 'newest') . "&search=" . (isset($_GET['search']) ? $_GET['search'] : '') . "'>$i</a></li>";
-                        }
-                        ?>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-        <p class="text-center mt-4">
-            <i class="fas fa-hourglass-start text-blue-500"></i> چاوەڕوانی: <?php echo $total_pending; ?>، 
-            <i class="fas fa-spinner text-yellow-500"></i> کارکردن بەردەوامە: <?php echo $total_in_progress; ?>، 
-            <i class="fas fa-check-circle text-green-500"></i> تەواوبووەکان: <?php echo $total_completed; ?>
-        </p>
+    <div class="d-flex align-items-center">
+        <label class="me-2">ڕیزبەندی:</label>
+        <select id="sort" class="pagination a  w-auto " onchange="updateSort()">
+            <option value="newest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'newest') echo 'selected'; ?>>نوێترین</option>
+            <option value="oldest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'oldest') echo 'selected'; ?>>کۆنترین</option>
+            <option value="pending" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'pending') echo 'selected'; ?>>Pending</option>
+            <option value="in_progress" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'in_progress') echo 'selected'; ?>>In Progress</option>
+        </select>
+    </div>
+    <div class="d-flex justify-content-start">
+        <span>بڕۆ بۆ لاپەڕەی: </span>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <?php
+                for ($i = 1; $i <= $total_pages; $i++) {
+                    $active = ($i == $page) ? 'active' : '';
+                    echo "<li class='page-item $active'><a class='page-link' href='tasks.php?page=$i&sort=" . (isset($_GET['sort']) ? $_GET['sort'] : 'newest') . "&search=" . (isset($_GET['search']) ? $_GET['search'] : '') . "'>$i</a></li>";
+                }
+                ?>
+            </ul>
+        </nav>
+    </div>
+</div>
+<p class="text-center mt-4">
+    <i class="fas fa-hourglass-start text-blue-500"></i> چاوەڕوانی: <?php echo $total_pending; ?>، 
+    <i class="fas fa-spinner text-yellow-500"></i> کارکردن بەردەوامە: <?php echo $total_in_progress; ?>، 
+    <i class="fas fa-check-circle text-green-500"></i> تەواوبووەکان: <?php echo $total_completed; ?>
+</p>
         <form method="POST" action="tasks/bulk_action.php" onsubmit="return confirmAction(this.action.value)">
-            <div class="table-container p-4 overflow-x-auto bg-white shadow-lg rounded-lg">
-                <table id="tasksTable" class="w-full border-collapse">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-700 text-center">
-                            <th class="p-3">🎯</th>
-                            <th class="p-3">ID</th>
-                            <th class="p-3">ئەرك</th>
-                            <th class="p-3">ژمارە</th>
-                            <th class="p-3">شوێن</th>
-                            <th class="p-3">کارمەند</th>
-                            <th class="p-3">ژمارە مۆبایل</th>
-                            <th class="p-3">تیم</th>
-                            <th class="p-3">حاڵەت</th>
-                            <th class="p-3">نرخ</th>
-                            <th class="p-3">بەروار</th>
-                            <th class="p-3">⚙️</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                        <tr class="border-b text-center hover:bg-gray-100">
-                            <td class="p-3"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
-                            <td class="p-3"><?= $row['id'] ?></td>
-                            <td class="p-3"><?= $row['task_name'] ?></td>
-                            <td class="p-3"><?= $row['task_number'] ?></td>
-                            <td class="p-3"><?= $row['location'] ?></td>
-                            <td class="p-3"><?= $row['employee'] ?></td>
-                            <td class="p-3"><?= $row['mobile_number'] ?></td>
-                            <td class="p-3"><?= $row['team'] ?></td>
-                            <td class="p-3 font-bold <?php echo ($row['status'] == 'Pending') ? 'text-yellow-500' : (($row['status'] == 'In Progress') ? 'text-blue-500' : 'text-green-500'); ?>">
-                                <?= $row['status'] ?>
-                            </td>
-                            <td class="p-3"><?= $row['cost'] ?> <?= $row['currency'] ?></td>
-                            <td class="p-3"><?= $row['date'] ?></td>
-                            <td class="p-3 flex justify-center gap-2">
-                                <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-700">✏️</a>
-                                <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-700">📋</a>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-container p-4 overflow-x-auto bg-white shadow-lg rounded-lg">
+    <table id="tasksTable" class="w-full border-collapse">
+        <thead>
+            <tr class="bg-gray-200 text-gray-700 text-center">
+                <th class="p-3">🎯</th>
+                <th class="p-3">ID</th>
+                <th class="p-3">ئەرك</th>
+                <th class="p-3">ژمارە</th>
+                <th class="p-3">شوێن</th>
+                <th class="p-3">کارمەند</th>
+                <th class="p-3">ژمارە مۆبایل</th>
+                <th class="p-3">تیم</th>
+                <th class="p-3">حاڵەت</th>
+                <th class="p-3">نرخ</th>
+                <th class="p-3">بەروار</th>
+                <th class="p-3">⚙️</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+            <tr class="border-b text-center hover:bg-gray-100">
+                <td class="p-3"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
+                <td class="p-3"><?= $row['id'] ?></td>
+                <td class="p-3"><?= $row['task_name'] ?></td>
+                <td class="p-3"><?= $row['task_number'] ?></td>
+                <td class="p-3"><?= $row['location'] ?></td>
+                <td class="p-3"><?= $row['employee'] ?></td>
+                <td class="p-3"><?= $row['mobile_number'] ?></td>
+                <td class="p-3"><?= $row['team'] ?></td>
+                <td class="p-3 font-bold <?php echo ($row['status'] == 'Pending') ? 'text-yellow-500' : (($row['status'] == 'In Progress') ? 'text-blue-500' : 'text-green-500'); ?>">
+                    <?= $row['status'] ?>
+                </td>
+                <td class="p-3"><?= $row['cost'] ?> <?= $row['currency'] ?></td>
+                <td class="p-3"><?= $row['date'] ?></td>
+                <td class="p-3 flex justify-center gap-2">
+                    <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-700">✏️</a>
+                    <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-700">📋</a>
+                </td>
+            </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</div>
 
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between gap-2 mt-4">
                 <button type="submit" name="action" value="delete" class="btn btn-danger">❌ سڕینەوە</button>
                 <button type="submit" name="action" value="complete" class="btn btn-success">✅ تەواوکردن</button>
             </div>
