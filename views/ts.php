@@ -1,119 +1,181 @@
 <?php
 session_start();
-include '../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
+include '../../includes/db.php';
 
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit();
 }
 
-$order_by = 'id DESC'; // Default sorting by newest ID
+// ڕوونکردنەوەی هەڵەکان
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-if (isset($_GET['sort'])) {
-    switch ($_GET['sort']) {
-        case 'newest':
-            $order_by = 'id DESC';
-            break;
-        case 'oldest':
-            $order_by = 'id ASC';
-            break;
-        case 'pending':
-            $order_by = "status = 'Pending' DESC, id DESC";
-            break;
-        case 'in_progress':
-            $order_by = "status = 'In Progress' DESC, id DESC";
-            break;
-    }
+// فلتەرکردنی بەروار
+$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+
+$query = "SELECT * FROM tasks WHERE status = 'Completed'";
+
+if (!empty($from_date) && !empty($to_date)) {
+    $query .= " AND date BETWEEN '$from_date' AND '$to_date'";
 }
 
-// پەیجینەیشن
-$tasks_per_page = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $tasks_per_page;
+$query .= " ORDER BY date DESC"; // ڕیزبەندی نوێترین بۆ کۆنترین
 
-$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
-
-$where_clause = "status != 'Completed'";
-if ($search) {
-    $where_clause .= " AND (task_name LIKE '%$search%' OR task_number LIKE '%$search%' OR location LIKE '%$search%' OR employee LIKE '%$search%' OR mobile_number LIKE '%$search%' OR team LIKE '%$search%')";
-}
-
-$query_total = "SELECT COUNT(*) as total FROM tasks WHERE $where_clause";
-$result_total = mysqli_query($conn, $query_total);
-$row_total = mysqli_fetch_assoc($result_total);
-$total_tasks = $row_total['total'];
-$total_pages = ceil($total_tasks / $tasks_per_page);
-
-$query = "SELECT * FROM tasks WHERE $where_clause ORDER BY $order_by LIMIT $tasks_per_page OFFSET $offset";
 $result = mysqli_query($conn, $query);
-
+if (!$result) {
+    die("کێشە لە ناردنی داتا: " . mysqli_error($conn));
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern UI Design</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <title>کارە تەواوبووەکان ✅</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Calibri, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Calibri', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
         }
-        .table-container {
+        .container {
+            width: 90%;
+            margin: auto;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff;
+        }
+        .filter-form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-        .btn-custom {
-            border-radius: 30px;
-            padding: 10px 20px;
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        .pagination a {
-        padding: 8px 14px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #2563eb;
-        transition: all 0.3s ease;
+        th {
+            background: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .btn-filter {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-export {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .fab:hover {
+            background: #0056b3;
+        }
+        @media screen and (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="table-container">
-            <h3 class="text-center mb-4">Tasks Table</h3>
-            <table class="table table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Task Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <tr>
-                        <td><?= $row['id'] ?></td>
-                        <td><?= $row['task_name'] ?></td>
-                        <td><span class="badge bg-warning">Pending</span></td>
-                        <td>
-                            <button class="btn btn-success btn-sm">✔ Complete</button>
-                            <button class="btn btn-danger btn-sm">✖ Delete</button>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <button class="floating-btn" title="Add Task">
-        <i class="fas fa-plus"></i>
-    </button>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container">
+    <h1>کارە تەواوبووەکان ✅</h1>
+
+    <form method="GET" action="" class="filter-form">
+        <label>بەروار لە 📅:</label>
+        <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+        <label>بەروار بۆ 📅:</label>
+        <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
+        <button type="submit" class="btn btn-filter">فلتەرکردن 🔍</button>
+        <button type="button" class="btn btn-reset" onclick="window.location.href='completed_tasks.php'">هەڵوەشاندنەوەی فلتەر 🔄</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>ID </th>
+            <th>ئەرك 📋</th>
+            <th>ژمارە 🔢</th>
+            <th>شوێن 📍</th>
+            <th>کارمەند 👤</th>
+            <th>ژمارە مۆبایل 📞</th>
+            <th>تیم 👥</th>
+            <th>حاڵەت 📊</th>
+            <th>نرخ 💰</th>
+            <th>بەروار 📅</th>
+            <th>بەرواری تەواو کردن 📅</th>
+        </tr>
+        <?php while ($row = mysqli_fetch_assoc($result)) : ?>
+            <tr>
+                <td><?= htmlspecialchars($row['id']) ?></td>
+                <td><?= htmlspecialchars($row['task_name']) ?></td>
+                <td><?= htmlspecialchars($row['task_number']) ?></td>
+                <td><?= htmlspecialchars($row['location']) ?></td>
+                <td><?= htmlspecialchars($row['employee']) ?></td>
+                <td><?= htmlspecialchars($row['mobile_number']) ?></td>
+                <td><?= htmlspecialchars($row['team']) ?></td>
+                <td><?= htmlspecialchars($row['status']) ?></td>
+                <td><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
+                <td><?= htmlspecialchars($row['date']) ?></td>
+                <td><?= htmlspecialchars($row['completion_date']) ?></td>
+            </tr>
+        <?php endwhile; ?>
+    </table>
+
+    <br>
+    <button onclick="window.location.href='export_completed_tasks.php?from_date=<?= htmlspecialchars($from_date) ?>&to_date=<?= htmlspecialchars($to_date) ?>'" class="btn btn-export">ئێکسپۆرتکردن بۆ ئێکسڵ 📤</button>
+</div>
+
+<div class="fab" onclick="window.location.href='add_task.php'">
+    <i class="fas fa-plus"></i>
+</div>
+
 </body>
 </html>

@@ -85,35 +85,15 @@ $total_completed = $row_completed['total'];
             font-family: 'Zain', sans-serif;
             background-color: #f9fafb;
         }
-            /* حاڵەت (Status) بە ڕەنگ جیاکراوە */
-       .status-pending {
-            color: #f59e0b; /* text-yellow-500 */
-            font-weight: bold;
-           }
-
-        .status-in-progress {
-            color: #3b82f6; /* text-blue-500 */
-            font-weight: bold;
-           }
-
-        .status-completed {
-            color: #10b981; /* text-green-500 */
-            font-weight: bold;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            background: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
         .page-link {
             color: #007bff;
         }
+
         .page-link:hover {
             color: #0056b3;
             text-decoration: none;
         }
+
         .pagination {
             justify-content: center;
         }
@@ -123,7 +103,7 @@ $total_completed = $row_completed['total'];
             display: flex;
             gap: 10px;
         }
-    
+
         /* شێوەی تایبەتی بۆ دوگمەکان */
         .custom-button {
             display: inline-block;
@@ -135,32 +115,37 @@ $total_completed = $row_completed['total'];
             color: #000;
             transition: all 0.3s ease;
             border: none;
-            cursor: pointer;   
+            cursor: pointer;
         }
 
         .custom-button:hover {
             background-color: #4f36c7;
             color: white;
         }
-    
-    
+
         /* شێوەی خشتە */
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #ddd;
-            
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            direction: rtl;
         }
-        table th, table td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #ddd;
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+            justify-content: center
+            color:rgb(125, 125, 125);
         }
-        table tr:hover {
-            background-color:rgb(207, 207, 207);
+        th {
+            background: #007bff;
+            color: white;
         }
-        table thead th {
-            background-color: #f0f0f0; /* Light gray background color */
+        tr:hover {
+            background-color: #f1f1f1;
         }
         .button-container {
             display: flex;
@@ -168,14 +153,40 @@ $total_completed = $row_completed['total'];
             gap: 10px; /* Add some space between buttons */
             padding: 0 0 10px 0px;
         }
-
+        /* باگراوند بۆ حاڵەت */
+        .bg-yellow-500 {
+        background-color: #f59e0b;
+        }
+        .bg-blue-500 {
+            background-color: #3b82f6;
+        }
+        .bg-gray-500 {
+            background-color: #6b7280;
+        }
         .pagination a {
-        padding: 4px 6px 4px 6px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #2563eb;
-        transition: all 0.3s ease;
+            padding: 4px 6px 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #2563eb;
+            transition: all 0.3s ease;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .fab:hover {
+            background: #0056b3;
         }
     </style>
 
@@ -194,8 +205,8 @@ $total_completed = $row_completed['total'];
             <button class="custom-button" onclick="window.location.href='tasks/report.php'">📊 ڕاپۆرتی گشتی</button>
         </div>
 
-        <div class="mb-4">
-            <input type="text" id="search" class="form-control" placeholder="🔍 گەڕان بپێی ئەرك، ژمارە، شوێن، كارمەند..." onkeyup="searchTasks()">
+        <div class="mb-2">
+            <input type="text" id="search" class="form-control" placeholder="🔍 گەڕان بپێیID و بەروار و ئەرك، ژمارە، شوێن، كارمەند..." onkeyup="searchTasks()">
         </div>
         <script>
     function searchTasks() {
@@ -218,8 +229,15 @@ $total_completed = $row_completed['total'];
         }
     }
 </script>
-
-        <div class="d-flex justify-content-between mb-4">
+<script>
+    function updateSort() {
+        const sort = document.getElementById('sort').value;
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.set('sort', sort);
+        window.location.search = searchParams.toString();
+    }
+</script>
+<div class="d-flex justify-content-between mb-2">
     <div class="d-flex align-items-center">
         <label class="me-2">ڕیزبەندی:</label>
         <select id="sort" class="pagination a  w-auto " onchange="updateSort()">
@@ -243,14 +261,9 @@ $total_completed = $row_completed['total'];
         </nav>
     </div>
 </div>
-<p class="text-center mt-4">
-    <i class="fas fa-hourglass-start text-blue-500"></i> چاوەڕوانی: <?php echo $total_pending; ?>، 
-    <i class="fas fa-spinner text-yellow-500"></i> کارکردن بەردەوامە: <?php echo $total_in_progress; ?>، 
-    <i class="fas fa-check-circle text-green-500"></i> تەواوبووەکان: <?php echo $total_completed; ?>
-</p>
         <form method="POST" action="tasks/bulk_action.php" onsubmit="return confirmAction(this.action.value)">
-        <div class="table-container p-4 overflow-x-auto bg-white shadow-lg rounded-lg">
-    <table id="tasksTable" class="w-full border-collapse">
+        <div class="table-container overflow-x-auto bg-white shadow-lg rounded-lg">
+        <table id="tasksTable" class="w-full border-collapse border border-gray-300">
         <thead>
             <tr class="bg-gray-200 text-gray-700 text-center">
                 <th class="p-3">🎯</th>
@@ -264,12 +277,12 @@ $total_completed = $row_completed['total'];
                 <th class="p-3">حاڵەت</th>
                 <th class="p-3">نرخ</th>
                 <th class="p-3">بەروار</th>
-                <th class="p-3">⚙️</th>
+                <th class="p-3"> ⚙️ کردارەکان</th>
             </tr>
         </thead>
         <tbody>
             <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-            <tr class="border-b text-center hover:bg-gray-100">
+            <tr class="border-t text-center hover:bg-gray-100">
                 <td class="p-3"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
                 <td class="p-3"><?= $row['id'] ?></td>
                 <td class="p-3"><?= $row['task_name'] ?></td>
@@ -278,14 +291,25 @@ $total_completed = $row_completed['total'];
                 <td class="p-3"><?= $row['employee'] ?></td>
                 <td class="p-3"><?= $row['mobile_number'] ?></td>
                 <td class="p-3"><?= $row['team'] ?></td>
-                <td class="p-3 font-bold <?php echo ($row['status'] == 'Pending') ? 'text-yellow-500' : (($row['status'] == 'In Progress') ? 'text-blue-500' : 'text-green-500'); ?>">
-                    <?= $row['status'] ?>
+                <td class="p-3">
+                    <span class="px-2 py-1 rounded-5 text-white text-xs 
+                        <?php 
+                            if ($row['status'] == 'Pending') {
+                                echo 'bg-yellow-500';
+                            } elseif ($row['status'] == 'In Progress') {
+                                echo 'bg-blue-500';
+                            } else {
+                                echo 'bg-gray-500';
+                            }
+                        ?>">
+                        <?= htmlspecialchars($row['status']) ?>
+                    </span>
                 </td>
                 <td class="p-3"><?= $row['cost'] ?> <?= $row['currency'] ?></td>
                 <td class="p-3"><?= $row['date'] ?></td>
                 <td class="p-3 flex justify-center gap-2">
-                    <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-700">✏️</a>
-                    <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-700">📋</a>
+                    <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white rounded-lg hover:bg-blue-700">✏️</a>
+                    <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white rounded-lg hover:bg-green-700">📋</a>
                 </td>
             </tr>
             <?php } ?>
@@ -302,5 +326,12 @@ $total_completed = $row_completed['total'];
 
     <!-- Bootstrap Bundle JS (including Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    </div>
+
+<div class="fab" onclick="window.location.href='tasks/add_task.php'">
+    <i class="fas fa-plus"></i>
+</div>
+
 </body>
 </html>
