@@ -66,11 +66,13 @@ if (!$result) {
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             direction: rtl;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         th, td {
             padding: 12px;
             text-align: right;
             border-bottom: 1px solid #ddd;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         th {
             background: #007bff;
@@ -80,13 +82,14 @@ if (!$result) {
             background-color: #f1f1f1;
         }
         .btn {
-            padding: 5px 5px;
+            padding: 10px 20px;
             border: none;
             cursor: pointer;
             border-radius: 5px;
             margin: 5px;
             font-size: 16px;
             font-family: 'Zain', sans-serif; /* Updated font family */
+            transition: background-color 0.3s, opacity 0.3s;
         }
         .btn-filter {
             background-color: #0d6efd;
@@ -99,6 +102,27 @@ if (!$result) {
         .btn-export {
             background-color: #0d6efd;
             color: white;
+        }
+        .btn-view {
+            background-color: #0d6efd;
+            color: white;
+        }
+        /* فۆرم */
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        form input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            flex: 1;
+            font-size: 16px;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         .btn:hover {
             opacity: 0.8;
@@ -114,9 +138,11 @@ if (!$result) {
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             font-size: 24px;
+            transition: background-color 0.3s;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         .fab:hover {
-            background: #0d6efd;
+            background: #0056b3;
         }
         @media screen and (max-width: 768px) {
             table {
@@ -203,6 +229,7 @@ if (!$result) {
             padding: 8px 0;
             border-bottom: 1px solid #ddd;
             font-size: 16px;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         .task-info:last-child {
             border-bottom: none;
@@ -244,6 +271,7 @@ if (!$result) {
         <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
         <button type="submit" class="btn btn-filter">فلتەرکردن 🔍</button>
         <button type="button" class="btn btn-reset" onclick="window.location.href='completed_tasks.php'">هەڵوەشاندنەوەی فلتەر 🔄</button>
+        <button type="button" class="btn btn-reset" onclick="window.location.href='../tasks.php'">◀ گەڕانەوە</button>
     </form>
 
     <table>
@@ -261,7 +289,6 @@ if (!$result) {
                 <th>بەروار</th>
                 <th>تەواوکردن</th>
                 <th>(ڕۆژ)</th>
-                <th>بینین</th>
             </tr>
         </thead>
         <tbody>
@@ -279,8 +306,6 @@ if (!$result) {
                 <td><?= htmlspecialchars($row['date']) ?></td>
                 <td><?= htmlspecialchars($row['completion_date']) ?></td>
                 <td><?= htmlspecialchars($row['days_to_complete']) ?></td>
-                <td><button class="btn-view" onclick="showDetails(<?= htmlspecialchars(json_encode($row)) ?>)">👁️</button></td>
-            </tr>
             <?php } ?>
         </tbody>
     </table>

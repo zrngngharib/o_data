@@ -67,6 +67,8 @@ $total_completed = $row_completed['total'];
 <!DOCTYPE html>
 <html lang="ku">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
 
@@ -81,7 +83,8 @@ $total_completed = $row_completed['total'];
         body {
             direction: rtl;
             font-family: 'Zain', sans-serif;
-            background-color: #f9fafb;
+            background-color: #e6f0fa;
+            color: #333;
         }
         .page-link {
             color: #007bff;
@@ -102,23 +105,23 @@ $total_completed = $row_completed['total'];
             gap: 10px;
         }
 
-        /* شێوەی تایبەتی بۆ دوگمەکان */
+        /* Modern button styles */
         .custom-button {
             display: inline-block;
-            padding: 10px 16px;
-            border-radius: 50px;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-size: 14px;
             color: white;
             text-align: center;
-            color: #000;
-            transition: all 0.3s ease;
+            background-color: #007bff;
+            transition: background-color 0.3s ease, transform 0.3s ease;
             border: none;
             cursor: pointer;
         }
 
         .custom-button:hover {
-            background-color: #4f36c7;
-            color: white;
+            background-color: #0056b3;
+            transform: translateY(-2px);
         }
 
         /* شێوەی خشتە */
@@ -148,8 +151,8 @@ $total_completed = $row_completed['total'];
         .button-container {
             display: flex;
             justify-content: center; /* Center the buttons */
-            gap: 10px; /* Add some space between buttons */
-            padding: 0 0 10px 0px;
+            gap: 15px; /* Add some space between buttons */
+            margin-bottom: 20px;
         }
         /* باگراوند بۆ حاڵەت */
         .bg-yellow-500 {
@@ -198,7 +201,7 @@ $total_completed = $row_completed['total'];
         <h1 class="text-center mb-4">ئەركەكانی ڕۆژانە</h1>
 
         <div class="button-container">
-            <button class="custom-button" onclick="window.location.href='tasks/add_task.php'">➕ زیاد كردن</button>
+            <button class="custom-button" onclick="window.location.href='tasks/add_task.php'">╋ زیاد كردن</button>
             <button class="custom-button" onclick="window.location.href='tasks/pending_tasks.php'">⏳ کارە چاوەڕوانەکان</button>
             <button class="custom-button" onclick="window.location.href='tasks/completed_tasks.php'">✅ کارە تەواوبووەکان</button>
             <button class="custom-button" onclick="window.location.href='tasks/report.php'">📊 ڕاپۆرتی گشتی</button>
@@ -239,14 +242,14 @@ $total_completed = $row_completed['total'];
         <div class="d-flex justify-content-between mb-2">
             <div class="d-flex align-items-center">
                 <label class="me-2">ڕیزبەندی:</label>
-                <select id="sort" class="pagination a  w-auto " onchange="updateSort()">
+                <select id="sort" class="form-select w-auto" onchange="updateSort()">
                     <option value="newest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'newest') echo 'selected'; ?>>نوێترین</option>
                     <option value="oldest" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'oldest') echo 'selected'; ?>>کۆنترین</option>
                     <option value="pending" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'pending') echo 'selected'; ?>>Pending</option>
                     <option value="in_progress" <?php if (isset($_GET['sort']) && $_GET['sort'] == 'in_progress') echo 'selected'; ?>>In Progress</option>
                 </select>
             </div>
-            <div class="d-flex justify-content-start">
+            <div class="me-2 d-flex justify-content-start    ">
                 <span>بڕۆ بۆ لاپەڕەی: </span>
                 <nav aria-label="Page navigation">
                     <ul class="pagination">
@@ -316,9 +319,9 @@ $total_completed = $row_completed['total'];
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between gap-2 mt-4">
-                <button type="submit" name="action" value="delete" class="btn btn-danger">❌ سڕینەوە</button>
-                <button type="submit" name="action" value="complete" class="btn btn-success">✅ تەواوکردن</button>
+            <div class="d-flex justify-content-between gap-2 px-2 py-3">
+                <button type="submit" name="action" value="delete" class="btn btn-danger">✖ سڕینەوە</button>
+                <button type="submit" name="action" value="complete" class="btn btn-success">✔ تەواوکردن</button>
             </div>
         </form>
     </div>
