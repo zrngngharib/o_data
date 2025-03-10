@@ -21,8 +21,7 @@ $query = "SELECT *, DATEDIFF(completion_date, date) AS days_to_complete FROM tas
 if (!empty($from_date) && !empty($to_date)) {
     $query .= " AND date BETWEEN '$from_date' AND '$to_date'";
 }
-
-$query .= " ORDER BY date DESC"; // ڕیزبەندی نوێترین بۆ کۆنترین
+$query .= " ORDER BY completion_date DESC"; // ڕیزبەندی نوێترین بۆ کۆنترین
 
 $result = mysqli_query($conn, $query);
 if (!$result) {
@@ -37,16 +36,17 @@ if (!$result) {
     <title>کارە تەواوبووەکان ✅</title>
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
             direction: rtl;
-            font-family: 'Zain', sans-serif;
+            font-family: 'Zain', sans-serif; /* Updated font family */
             background-color: #f9fafb;
         }
         .container {
-            width: 100%;
+            width: 100%; /* Adjusted width */
+            margin: auto; /* Centered the container */
             text-align: center;
-            padding: 10px 15px;
             margin-bottom: 200px;
         }
         h1 {
@@ -80,12 +80,13 @@ if (!$result) {
             background-color: #f1f1f1;
         }
         .btn {
-            padding: 10px 15px;
+            padding: 5px 5px;
             border: none;
             cursor: pointer;
             border-radius: 5px;
             margin: 5px;
             font-size: 16px;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
         .btn-filter {
             background-color: #0d6efd;
@@ -223,6 +224,7 @@ if (!$result) {
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-family: 'Zain', sans-serif; /* Updated font family */
         }
 
         .btn-view:hover {
@@ -310,6 +312,7 @@ function showDetails(task) {
                 <p><strong>بەروار:</strong> ${task.date}</p>
                 <p><strong>بەرواری تەواو کردن:</strong> ${task.completion_date}</p>
                 <p><strong>(ڕۆژ):</strong> ${task.days_to_complete}</p>
+                <img src="${task.image_url}" alt="Task Image" style="width: 500px; height: 500px;">
             </div>
         </div>
     `;

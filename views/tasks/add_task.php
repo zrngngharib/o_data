@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $fileExtension = pathinfo($name, PATHINFO_EXTENSION);
 
                 // Use the original filename instead of creating a new one
-                $newFileName = $name; // Use original filename
+                $newFileName = date('y-m-d-H-i-s') . '.' . $fileExtension;
                 $filePath = $uploadDir . $newFileName;
 
                 if (move_uploaded_file($tmpName, $filePath)) {
@@ -49,16 +49,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
         }
-
+        $completion_date = null;
+        if ($status == 'Completed') {
+            $completion_date = date('Y-m-d H:i:s');
+        }
         // Prepare the SQL query
-        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date, files)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date, files, completion_date)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($db, $query);
         $files = implode(',', $uploadedFiles);
-        mysqli_stmt_bind_param($stmt, 'sssssssssss', $task_name, $task_number, $location, $employee, $mobile_number, $team, $status, $cost, $currency, $date, $files);
+        mysqli_stmt_bind_param($stmt, 'ssssssssssss', $task_name, $task_number, $location, $employee, $mobile_number, $team, $status, $cost, $currency, $date, $files, $completion_date);
+
+        // Telegram API بۆ ناردنی پەیام بۆ گروپی تێلەگرام
+        $telegram_api = "https://api.telegram.org/bot7286061251:AAEjEI8uhp0K8yw0Gg_ooq2NYA9J4Z1tJJ8";
+        $telegram_chat_id = "-1002256776178";
 
         // Execute the query
         if (mysqli_stmt_execute($stmt)) {
+            // Prepare the message
+            $message = "🔹 ئەرکی نوێ زیاد کرا 🔹\n";
+            $message .= "📌 ئەرک: $task_name\n";
+            $message .= "🔢 ژمارە:  $task_number\n";
+            $message .= "📍 شوێن:  $location\n";
+            $message .= "👥 کارمەند: $employee\n";
+            $message .= "📞 ژمارە مۆبایل:  $mobile_number\n";
+            $message .= "👥 تیم: $team\n";
+            $message .= "📊 حاڵەت: $status\n";
+            $message .= "📅 بەروار:  $date\n";
+            $message .= "📂 هاوپێچ " . implode(', ', $uploadedFiles) . "\n";
+
+            // Send the message to Telegram
+            $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode($message));
+            if ($response === false) {
+                echo "<p style='color: red;'>❌ هەڵەی ناردنی پەیام بۆ تێلەگرام.</p>";
+            }
+
             echo "<script>alert('کارەکە زیاد کرا'); setTimeout(function(){ window.location.href = '../../views/tasks.php'; }, 1000);</script>";
         } else {
             echo "<p style='color: red;'>هەڵە: ناتوانرا فایلی نوێ بنووسرێت.</p>";
