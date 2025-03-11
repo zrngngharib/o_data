@@ -48,7 +48,6 @@
                 class="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
                 چوونەژوورەوە
             </button>
-            </p>
         </form>
     </div>
 

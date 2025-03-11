@@ -16,11 +16,14 @@ try {
     die("کێشە لە پەیوەندی بە داتابەیس: " . $e->getMessage());
 }
 
-// Create connection
-$conn = mysqli_connect($servername, $username, $password, $database);
+// دروستکردنی پەیوەندی بە داتابەیس
+$conn = new mysqli($servername, $username, $password, $database);
 
-// Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+// پشکنینی پەیوەندی
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
-?>
+
+// Timezone setting
+date_default_timezone_set('UTC');
+

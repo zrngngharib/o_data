@@ -25,11 +25,6 @@ include 'includes/db.php'; // ڕێڕەوی دروست بۆ db.php
 // دەستپێکردنی ئینتەرنێت
 session_start();
 
-// پشکنینی ئەگەر بەکارهێنەر چوونەژورەوە
-if (!isset($_SESSION['user'])) {
-    header('Location: views/login.php');
-    exit();
-}
 
 
 // Define Routes

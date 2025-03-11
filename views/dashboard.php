@@ -95,7 +95,7 @@ if ($result_in_progress) {
         <a href="/o_data/views/devices.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
             ⚙️ ئامێرەكان
         </a>
-        <a href="/o_data/views/users.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
+        <a href="/o_data/views/usermanagment.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
             👤 بەكارهێنەران
         </a>
         <a href="/o_data/views/telegram_bot.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
