@@ -2,9 +2,16 @@
 session_start();
 include '../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
 
     if (empty($username) || empty($password)) {
         echo "<script>alert('تکایە هەموو خانەکان پڕبکەرەوە!'); window.location.href='../views/login.php';</script>";

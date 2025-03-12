@@ -1,171 +1,288 @@
 <?php
-// dashboard.php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+session_start();
+include_once('../includes/db.php');
 
-// دەستپێکردنی ئینتەرنێت
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
 }
 
-// Use absolute path for including db.php
-include __DIR__ . '/../includes/db.php'; // پەیوەندی بە داتابەیس
+$username = $_SESSION['username'];
 
-// Check database connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+// Check active user
+$user_id = intval($_SESSION['user_id']);
+$user_query = mysqli_query($conn, "SELECT * FROM users WHERE id = $user_id AND status = 'active'");
+
+if (mysqli_num_rows($user_query) == 0) {
+    session_destroy();
+    echo "<script>alert('❌ ئەکاونتەکەت ناچالاکە!'); window.location.href='../index.php';</script>";
+    exit();
 }
 
-// Fetch counts from the database
-$all_tasks_count = 0;
-$completed_tasks_count = 0;
-$pending_tasks_count = 0;
-$in_progress_tasks_count = 0;
-$new_users_count = 0;
-$devices_count = 0;
-
+// Global Stats
 $query = "SELECT 
     (SELECT COUNT(*) FROM tasks) AS all_tasks,
     (SELECT COUNT(*) FROM tasks WHERE status = 'completed') AS completed_tasks,
     (SELECT COUNT(*) FROM tasks WHERE status = 'pending') AS pending_tasks,
-    (SELECT COUNT(*) FROM tasks WHERE status = 'in_progress') AS in_progress_tasks,
     (SELECT COUNT(*) FROM users WHERE created_at >= CURDATE()) AS new_users,
     (SELECT COUNT(*) FROM devices) AS devices";
 
 $result = mysqli_query($conn, $query);
-if ($result) {
-    $row = mysqli_fetch_assoc($result);
-    $all_tasks_count = $row['all_tasks'];
-    $completed_tasks_count = $row['completed_tasks'];
-    $pending_tasks_count = $row['pending_tasks'];
-    $in_progress_tasks_count = $row['in_progress_tasks'];
-    $new_users_count = $row['new_users'];
-    $devices_count = $row['devices'];
-} else {
-    die("Query failed: " . mysqli_error($conn));
+$row = mysqli_fetch_assoc($result);
+
+$all_tasks_count = $row['all_tasks'];
+$completed_tasks_count = $row['completed_tasks'];
+$pending_tasks_count = $row['pending_tasks'];
+$new_users_count = $row['new_users'];
+$devices_count = $row['devices'];
+
+// Daily Completed Tasks
+$dailyTasksQuery = mysqli_query($conn, "
+    SELECT DATE(completion_date) AS day, COUNT(*) AS count 
+    FROM tasks 
+    WHERE status = 'completed' 
+    GROUP BY day 
+    ORDER BY day ASC
+");
+
+$dailyTasks = [];
+while ($r = mysqli_fetch_assoc($dailyTasksQuery)) {
+    $dailyTasks[$r['day']] = $r['count'];
 }
 
-if (!$row) {
-    die("No data found");
+// Monthly Completed Tasks
+$monthlyTasksQuery = mysqli_query($conn, "
+    SELECT DATE_FORMAT(completion_date, '%Y-%m') AS month, COUNT(*) AS count 
+    FROM tasks 
+    WHERE status = 'completed' 
+    GROUP BY month 
+    ORDER BY month ASC
+");
+
+$monthlyTasks = [];
+while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
+    $monthlyTasks[$r['month']] = $r['count'];
 }
-// Fetch in-progress tasks from the database
-$in_progress_tasks = [];
-$query_in_progress = "SELECT * FROM tasks WHERE status = 'in_progress'";
-$result_in_progress = mysqli_query($conn, $query_in_progress);
-if ($result_in_progress) {
-    while ($row = mysqli_fetch_assoc($result_in_progress)) {
-        $in_progress_tasks[] = $row;
-    }
-}
+
 ?>
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O_DATA Dashboard</title>
+    <title>📊 داشبۆرد - O_Data</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Bootstrap RTL & TailwindCSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js & Animate.css -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
-    <!-- RTL Support -->
+    <!-- فۆنتی Zain -->
     <style>
+        @font-face {
+            font-family: 'Zain';
+            src: url('../fonts/Zain.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body, h1, h2, h3, h4, h5, h6, p, button, a, span, div {
+            font-family: 'Zain', sans-serif !important;
+        }
+
         body {
+            background: linear-gradient(135deg, #dee8ff, #f5f7fa);
             direction: rtl;
-            font-family: 'Zain', sans-serif;
+            text-align: right;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            padding: 1.5rem;
+        }
+
+        .dashboard-btn {
+            background-color: #4F46E5;
+            color: #fff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 p-6">
+<body class="flex flex-col min-h-screen p-4">
 
-    <?php
-    $username = isset($_SESSION['user']) ? $_SESSION['user'] : 'میوان';
-    ?>
+    <!-- Header -->
+    <header class="glass max-w-7xl w-full mx-auto mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse">📊 داشبۆرد - O_Data</h1>
+        <div class="flex gap-3 items-center">
+            <span class="text-sm text-gray-700">👤 <?= htmlspecialchars($username); ?></span>
+            <a href="../logout.php" class="btn btn-danger text-white rounded-pill">🚪 دەرچوون</a>
+        </div>
+    </header>
 
-    <h1 class="text-3xl font-bold text-gray-700 text-center">بەخێربێیت بەڕێز: <?php echo $username; ?></h1>
+    <!-- Welcome -->
+    <section class="glass max-w-7xl w-full mx-auto mb-6 text-center space-y-3">
+        <h2 class="text-2xl font-bold text-indigo-600 animate-pulse">👋 بەخێربێیت، <?= htmlspecialchars($username); ?></h2>
+    </section>
 
     <!-- Navigation Buttons -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-10">
-        <a href="/o_data/views/tasks.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            📌 ئەركەكانی ڕۆژانە
-        </a>
-        <a href="/o_data/views/devices.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            ⚙️ ئامێرەكان
-        </a>
-        <a href="/o_data/views/usermanagment.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            👤 بەكارهێنەران
-        </a>
-        <a href="/o_data/views/telegram_bot.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            🤖 بۆتی تیلیگرام
-        </a>
-        <a href="/o_data/views/daily_check.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            🏥 پشکنینی ڕۆژانە
-        </a>
-        <a href="/o_data/views/logout.php" class="bg-white border-2 border-purple-600 text-black p-4 rounded-lg text-center shadow-md transform transition hover:scale-105">
-            🚪 دەرچوون
-        </a>
+    <div class="glass flex flex-wrap justify-center gap-4 max-w-7xl w-full mx-auto mb-6 btn-group">
+        <a href="/o_data/views/tasks.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">📌 ئەركەكانی ڕۆژانە</a>
+        <a href="/o_data/views/devices.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">⚙️ ئامێرەكان</a>
+        <a href="/o_data/views/ctrluser/users.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">👥 بەكارهێنەران</a>
+        <a href="/o_data/views/telegram_bot.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">🤖 بۆتی تیلیگرام</a>
+        <a href="/o_data/views/daily_check.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">🏥 پشکنینی ڕۆژانە</a>
     </div>
-    
-    <!-- Responsive Cards for Statistics -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">📊</span>
-                <div>
-                    <h2 class="text-xl font-semibold">هەموو کارەکان</h2>
-                    <p class="text-3xl font-bold"><?php echo $all_tasks_count; ?></p>
-                </div>
+
+    <!-- Stats -->
+    <section class="glass max-w-7xl w-full mx-auto mt-10 flex flex-wrap justify-center gap-6 text-center">
+        <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
+            <div class="text-4xl">📊</div>
+            <h3 class="text-lg font-bold">هەموو کارەکان</h3>
+            <p class="text-3xl font-bold"><?= $all_tasks_count; ?></p>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
+            <div class="text-4xl">✅</div>
+            <h3 class="text-lg font-bold">کارە تەواوبووەکان</h3>
+            <p class="text-3xl font-bold"><?= $completed_tasks_count; ?></p>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
+            <div class="text-4xl">⏳</div>
+            <h3 class="text-lg font-bold">چاوەڕوانی</h3>
+            <p class="text-3xl font-bold"><?= $pending_tasks_count; ?></p>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
+            <div class="text-4xl">🚀</div>
+            <h3 class="text-lg font-bold">داهاتنی بەکارهێنەران</h3>
+            <p class="text-3xl font-bold"><?= $new_users_count; ?></p>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
+            <div class="text-4xl">⚙️</div>
+            <h3 class="text-lg font-bold">ئامێرەکان</h3>
+            <p class="text-3xl font-bold"><?= $devices_count; ?></p>
+        </div>
+    </section>
+
+    <!-- Reports Section (Charts) -->
+    <section class="glass max-w-7xl w-full mx-auto mt-10 p-6 text-center">
+        <h2 class="text-xl font-bold text-indigo-600 mb-6">📈 ڕاپۆرتەکان</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Daily Tasks Bar Chart -->
+            <div class="bg-white rounded-2xl p-4 shadow-md">
+                <h3 class="text-lg font-bold mb-3">📅 ڕاپۆرتی ڕۆژانە</h3>
+                <canvas id="dailyCompletedTasksChart"></canvas>
+            </div>
+            
+            <!-- Monthly Tasks Bar Chart -->
+            <div class="bg-white rounded-2xl p-4 shadow-md">
+                <h3 class="text-lg font-bold mb-3">🗓️ ڕاپۆرتی مانگانە</h3>
+                <canvas id="monthlyCompletedTasksChart"></canvas>
             </div>
         </div>
-        <div class="bg-green-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">✅</span>
-                <div>
-                    <h2 class="text-xl font-semibold">کارە تەواوبووەکان</h2>
-                    <p class="text-3xl font-bold"><?php echo $completed_tasks_count; ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-yellow-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">⏳</span>
-                <div>
-                    <h2 class="text-xl font-semibold">کارە دەستپێکردوەکان </h2>
-                    <p class="text-3xl font-bold"><?php echo $in_progress_tasks_count; ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-red-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">❗</span>
-                <div>
-                    <h2 class="text-xl font-semibold"> چاوەڕوانی</h2>
-                    <p class="text-3xl font-bold"><?php echo $pending_tasks_count; ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-indigo-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">🚪</span>
-                <div>
-                    <h2 class="text-xl font-semibold">داهاتنی بەکارهێنەران</h2>
-                    <p class="text-3xl font-bold"><?php echo $new_users_count; ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-gray-500 text-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
-            <div class="flex items-center space-x-4">
-                <span class="text-4xl">🛠️</span>
-                <div>
-                    <h2 class="text-xl font-semibold">ئامێرەکان</h2>
-                    <p class="text-3xl font-bold"><?php echo $devices_count; ?></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
+
+    <!-- Chart.js Config -->
+    <script>
+        const dailyLabels = <?= json_encode(array_keys($dailyTasks)) ?>;
+        const dailyData = <?= json_encode(array_values($dailyTasks)) ?>;
+
+        const monthlyLabels = <?= json_encode(array_keys($monthlyTasks)) ?>;
+        const monthlyData = <?= json_encode(array_values($monthlyTasks)) ?>;
+
+        // Daily Bar Chart
+        new Chart(document.getElementById('dailyCompletedTasksChart'), {
+            type: 'bar',
+            data: {
+                labels: dailyLabels,
+                datasets: [{
+                    label: 'کارە تەواوبووەکان بە ڕۆژ',
+                    data: dailyData,
+                    backgroundColor: '#4F46E5',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'ڕاپۆرتی ڕۆژانە - کارە تەواوبووەکان',
+                        font: { family: 'Zain', size: 16 }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { family: 'Zain' } }
+                    },
+                    x: {
+                        ticks: { font: { family: 'Zain' } }
+                    }
+                }
+            }
+        });
+
+        // Monthly Bar Chart
+        new Chart(document.getElementById('monthlyCompletedTasksChart'), {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'کارە تەواوبووەکان بە مانگ',
+                    data: monthlyData,
+                    backgroundColor: '#10B981',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'ڕاپۆرتی مانگانە - کارە تەواوبووەکان',
+                        font: { family: 'Zain', size: 16 }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { family: 'Zain' } }
+                    },
+                    x: {
+                        ticks: { font: { family: 'Zain' } }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="text-center mt-12 text-gray-600 text-sm">
+        &copy; <?= date('Y'); ?> O_Data - هەموو مافەکان پارێزراون
+    </footer>
+
 </body>
 </html>
-

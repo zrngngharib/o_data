@@ -2,187 +2,146 @@
 session_start();
 include '../../includes/db.php';
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../index.php");
     exit();
 }
 
-$task_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$success_message = '';
+if (!isset($_GET['id'])) {
+    echo "<script>alert('❌ ئەركەکە نەدۆزرایەوە!'); window.location.href='pending_tasks.php';</script>";
+    exit();
+}
+
+$task_id = intval($_GET['id']);
+
+// Fetch task
+$query = "SELECT * FROM tasks WHERE id = $task_id";
+$result = mysqli_query($conn, $query);
+$task = mysqli_fetch_assoc($result);
+
+if (!$task) {
+    echo "<script>alert('❌ ئەركەکە بوونی نیە!'); window.location.href='pending_tasks.php';</script>";
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $task_name = $_POST['task_name'];
-    $task_number = $_POST['task_number'];
-    $location = $_POST['location'];
-    $employee = $_POST['employee'];
-    $mobile_number = $_POST['mobile_number'];
-    $team = $_POST['team'];
-    $status = $_POST['status'];
-    $cost = $_POST['cost'];
-    $currency = $_POST['currency'];
-    $date = $_POST['date'];
+    $task_name = mysqli_real_escape_string($conn, $_POST['task_name']);
+    $task_number = mysqli_real_escape_string($conn, $_POST['task_number']);
+    $location = mysqli_real_escape_string($conn, $_POST['location']);
+    $employee = mysqli_real_escape_string($conn, $_POST['employee']);
+    $mobile_number = mysqli_real_escape_string($conn, $_POST['mobile_number']);
+    $team = mysqli_real_escape_string($conn, $_POST['team']);
+    $status = $task['status']; // Keep the original status
+    $date = $task['date']; // Keep the original date
+    $cost = $task['cost']; // Keep the original cost
+    $completion_date = ($status === 'Completed') ? "'" . date('Y-m-d') . "'" : 'NULL';
 
-    $query = "UPDATE tasks SET 
-                task_name = '$task_name', 
-                task_number = '$task_number', 
-                location = '$location', 
-                employee = '$employee', 
-                mobile_number = '$mobile_number', 
-                team = '$team', 
-                status = '$status', 
-                cost = '$cost', 
-                currency = '$currency', 
-                date = '$date' 
-              WHERE id = $task_id";
+    $update = "UPDATE tasks SET 
+        task_name='$task_name',
+        task_number='$task_number',
+        location='$location',
+        employee='$employee',
+        mobile_number='$mobile_number',
+        team='$team',
+        cost='$cost',
+        status='$status',
+        date='$date',
+        completion_date=$completion_date
+        WHERE id=$task_id";
 
-    if (mysqli_query($conn, $query)) {
-        $success_message = "گۆڕانکاریەکان سەرکەوتوو بوون.";
+    if (mysqli_query($conn, $update)) {
+        if ($status === 'Completed') {
+            echo "<script>alert('✅ ئەرك نوێکرایەوە!'); window.location.href='completed_tasks.php';</script>";
+        } else {
+            echo "<script>alert('✅ ئەرك نوێکرایەوە!'); window.location.href='pending_tasks.php';</script>";
+        }
+        exit();
     } else {
-        echo "کێشە لە نوێکردنەوەی داتا: " . mysqli_error($conn);
+        echo "<script>alert('❌ هەڵە لە نوێکردنەوە!');</script>";
     }
-} else {
-    $query = "SELECT * FROM tasks WHERE id = $task_id";
-    $result = mysqli_query($conn, $query);
-    $task = mysqli_fetch_assoc($result);
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>دەستکاری ئەرك ✏️</title>
+    <title>✏️ دەستکاریکردنی ئەرك</title>
 
-    <!-- Import Zain Font -->
+    <!-- Tailwind + Bootstrap + Font -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Zain:ital,wght@0,400;0,700;1,400&display=swap');
-
-        * {
-            box-sizing: border-box;
+        @font-face {
+            font-family: 'Zain';
+            src: url('../../fonts/Zain.ttf');
         }
-
         body {
-            font-family: 'Zain', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #e6f0fa;
-            color: #333;
-            direction: rtl;
+            font-family: 'Zain', sans-serif !important;
+            background: linear-gradient(135deg, #dee8ff, #f5f7fa);
         }
-
-        .container {
-            max-width: 700px;
-            margin: 50px auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+        .glass {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
         }
-
-        h1 {
-            text-align: center;
-            color: #007bff;
-            margin-bottom: 30px;
-            font-weight: 700;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        label {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="datetime-local"],
-        select {
-            padding: 12px 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: 'Zain', sans-serif;
-            width: 100%;
-        }
-
-        button {
-            background-color: #007bff;
+        .dashboard-btn {
+            background-color: #4F46E5;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Zain', sans-serif;
+            padding: 0.5rem 1.5rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-
-        button:hover {
-            background-color: #0056b3;
+        .dashboard-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
         }
-
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-link a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .back-link a:hover {
-            text-decoration: underline;
-        }
-
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>دەستکاری ئەرك</h1>
-        <?php if ($success_message): ?>
-            <p style="color: green;"><?= $success_message ?></p>
-        <?php endif; ?>
-        <form method="POST" action="">
-            <label>ئەرك:</label>
-            <input type="text" name="task_name" value="<?= htmlspecialchars($task['task_name']) ?>">
-            <label>ژمارە:</label>
-            <input type="text" name="task_number" value="<?= htmlspecialchars($task['task_number']) ?>">
-            <label>شوێن:</label>
-            <input type="text" name="location" value="<?= htmlspecialchars($task['location']) ?>">
-            <label>کارمەند:</label>
-            <input type="text" name="employee" value="<?= htmlspecialchars($task['employee']) ?>">
-            <label>ژمارە مۆبایل:</label>
-            <input type="number" name="mobile_number" value="<?= htmlspecialchars($task['mobile_number']) ?>" required>
-            <label>تیم:</label>
-            <select name="team" required>
-                <option value="داخلی" <?= $task['team'] == 'داخلی' ? 'selected' : '' ?>>داخلی</option>
-                <option value="دەرەکی" <?= $task['team'] == 'دەرەکی' ? 'selected' : '' ?>>دەرەکی</option>
-            </select>
-            <label>حاڵەت:</label>
-            <select name="status" required>
-                <option value="Pending" <?= $task['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                <option value="In Progress" <?= $task['status'] == 'In Progress' ? 'selected' : '' ?>>In Progress</option>
-                <option value="Completed" <?= $task['status'] == 'Completed' ? 'selected' : '' ?>>Completed</option>
-            </select>
-            <label>نرخ:</label>
-            <input type="text" name="cost" value="<?= htmlspecialchars($task['cost']) ?>">
-            <label>دراو:</label>
-            <select name="currency" required>
-                <option value="دینار" <?= $task['currency'] == 'دینار' ? 'selected' : '' ?>>دینار</option>
-                <option value="دۆلار" <?= $task['currency'] == 'دۆلار' ? 'selected' : '' ?>>دۆلار</option>
-            </select>
-            <label>بەروار:</label>
-            <input type="datetime-local" name="date" value="<?= date('Y-m-d\TH:i', strtotime($task['date'])) ?>" required>
-            <button type="submit">نوێکردنەوە</button>
+
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Edit Task Form -->
+    <div class="glass w-full max-w-xl p-6">
+        <h2 class="text-center text-2xl font-bold text-indigo-700 mb-6">✏️ دەستکاریکردنی ئەرك</h2>
+
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="form-label">📝 ناوی ئەرك</label>
+                <input type="text" name="task_name" value="<?= htmlspecialchars($task['task_name']) ?>" class="form-control" required>
+            </div>
+            <div>
+                <label class="form-label">📄 ژمارەی ئەرك</label>
+                <input type="text" name="task_number" value="<?= htmlspecialchars($task['task_number']) ?>" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">📍 شوێن</label>
+                <input type="text" name="location" value="<?= htmlspecialchars($task['location']) ?>" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">👤 کارمەند</label>
+                <input type="text" name="employee" value="<?= htmlspecialchars($task['employee']) ?>" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">📱 ژمارەی مۆبایل</label>
+                <input type="text" name="mobile_number" value="<?= htmlspecialchars($task['mobile_number']) ?>" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">👥 تیم</label>
+                <select name="team" class="form-select" required>
+                    <option value="Internal" <?= $task['team'] == 'Internal' ? 'selected' : '' ?>>تەکنیکی</option>
+                    <option value="External" <?= $task['team'] == 'External' ? 'selected' : '' ?>>دەرەکی</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center mt-6">
+                <button type="submit" class="dashboard-btn">💾 نوێکردنەوە</button>
+                <a href="pending_tasks.php" class="dashboard-btn bg-red-500 hover:bg-red-600">⬅️ گەڕانەوە</a>
+            </div>
         </form>
-        <div class="back-link">
-            <a href="../tasks.php">گەڕانەوە</a>
-        </div>
     </div>
+
 </body>
 </html>

@@ -1,12 +1,12 @@
 <?php
-include '../includes/db.php';
-
-// پشکنینی ئەگەر بەکارهێنەر چوونەژورەوە
 session_start();
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+include_once('../includes/db.php');
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>

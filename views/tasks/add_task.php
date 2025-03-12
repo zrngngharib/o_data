@@ -1,11 +1,12 @@
+
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 session_start();
 include '../../includes/db.php'; // ڕێڕەوی دروست بۆ db.php
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
 
@@ -94,164 +95,136 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>زیادکردنی ئەرك</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CSS -->
+    <title>➕ زیادکردنی ئەرك</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
+        @font-face {
+            font-family: 'Zain';
+            src: url('../fonts/Zain.ttf');
+        }
         body {
             font-family: 'Zain', sans-serif;
-            background-color: #f9f9f9;
-            direction: rtl;
+            background: linear-gradient(135deg, #dee8ff, #f5f7fa);
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #4f36c7;
+        .glass {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
         }
-        .form-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto;
+        .dashboard-btn {
+            background-color: #4F46E5;
+            color: #fff;
+            padding: 0.5rem 1.5rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .form-input, .form-select {
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            width: 100%;
-            border: 1px solid #ddd;
-        }
-        .form-input:focus, .form-select:focus {
-            border-color: #4f36c7;
-            outline: none;
-        }
-        .custom-button {
-            background-color: #4f36c7;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            width: 100%;
-            font-size: 16px;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
-        .custom-button:hover {
-            background-color: #3c2b9a;
-        }
-        .btn-secondary {
-            background-color: #e74c3c;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 30px;
-            font-size: 16px;
-            width: 100%;
-            margin-top: 10px;
-            transition: background-color 0.3s ease;
-        }
-        .btn-secondary:hover {
-            background-color: #c0392b;
+        .dashboard-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
         }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="container mt-5">
-        <h1 class="text-3xl text-blue-700 text-center font-bold mb-6">زیادکردنی ئەرك📝</h1>
-        <div class="form-container">
-            <form method="POST" action="add_task.php" enctype="multipart/form-data">
-                <div class="mb-4">
-                    <label for="task_name" class="text-lg font-bold">ناوی ئەرك:</label>
-                    <input type="text" name="task_name" class="form-input" required>
+    <div class="glass w-full max-w-2xl p-8">
+        <h2 class="text-center text-2xl font-bold text-indigo-700 mb-6">➕ زیادکردنی ئەرك</h2>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+
+            <div>
+                <label class="form-label">📝 ناوی ئەرك</label>
+                <input type="text" name="task_name" class="form-control rounded-lg border-2 border-indigo-300" required>
+            </div>
+
+            <div>
+                <label class="form-label">📄 ژمارەی ئەرك</label>
+                <input type="text" name="task_number" class="form-control rounded-lg border-2 border-indigo-300">
+            </div>
+
+            <div>
+                <label class="form-label">📍 شوێن</label>
+                <input type="text" name="location" class="form-control rounded-lg border-2 border-indigo-300">
+            </div>
+
+            <div>
+                <label class="form-label">👥 کارمەندەکان</label>
+                <div id="employee_fields">
+                    <input type="text" name="employee[]" class="form-control rounded-lg border-2 border-indigo-300 mb-2">
                 </div>
-                <div class="mb-4">
-                    <label for="task_number" class="text-lg font-bold">ژمارە:</label>
-                    <input type="text" name="task_number" class="form-input">
+                <button type="button" onclick="addEmployeeField()" class="dashboard-btn bg-green-600 hover:bg-green-700">➕ زیادکردنی کارمەند</button>
+            </div>
+
+            <div>
+                <label class="form-label">📱 ژمارەی مۆبایل</label>
+                <input type="text" name="mobile_number" class="form-control rounded-lg border-2 border-indigo-300">
+            </div>
+
+            <div>
+                <label class="form-label">👥 تیم</label>
+                <select name="team" class="form-select rounded-lg border-2 border-indigo-300" required>
+                    <option value="تەکنیکی">تەکنیکی</option>
+                    <option value="دەرەکی">دەرەکی</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">📌 حاڵەت</label>
+                <select name="status" class="form-select rounded-lg border-2 border-indigo-300" required>
+                    <option value="Pending">⏳ چاوەڕوانی</option>
+                    <option value="In Progress">🚧 دەستیپێکردوە</option>
+                    <option value="Completed">✅ تەواوکراوە</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="form-label">💲 نرخ</label>
+                    <input type="number" name="cost" step="0.01" class="form-control rounded-lg border-2 border-indigo-300">
                 </div>
-                <div class="mb-4">
-                    <label for="location" class="text-lg font-bold">شوێن:</label>
-                    <input type="text" name="location" class="form-input">
+
+                <div class="flex-1">
+                    <label class="form-label">💱 دراو</label>
+                    <select name="currency" class="form-select rounded-lg border-2 border-indigo-300">
+                        <option value="IQD">IQD - دینار</option>
+                        <option value="USD">USD - دۆلار</option>
+                    </select>
                 </div>
-                <div class="mb-4">
-                    <label for="employee" class="text-lg font-bold">کارمەند:</label>
-                    <div id="employee_fields">
-                        <input type="text" name="employee[]" class="form-input">
-                    </div>
-                    <button type="button" class="btn btn-primary mt-2" onclick="addEmployeeField()">+ کارمەندی زیاتری</button>
-                </div>
-                <div class="mb-4">
-                    <label for="mobile_number" class="text-lg font-bold">ژمارە مۆبایل:</label>
-                    <input type="number" name="mobile_number" class="form-input">
-                </div>
-                <div class="mb-4">
-                    <label for="team" class="text-lg font-bold">تیم:</label>
-                    <div class="flex items-center">
-                        <input type="radio" name="team" value="تەکنیکی" id="team_technical" class="form-radio text-indigo-600">
-                        <label for="team_technical" class="ml-2">تەکنیکی</label>
-                    </div>
-                    <div class="flex items-center mt-2">
-                        <input type="radio" name="team" value="دەرەکی" id="team_external" class="form-radio text-indigo-600">
-                        <label for="team_external" class="ml-2">دەرەکی</label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="status" class="text-lg font-bold">حاڵەت:</label>
-                    <div class="flex items-center">
-                        <input type="radio" name="status" value="Pending" id="status_pending" class="form-radio text-indigo-600">
-                        <label for="status_pending" class="ml-2">Pending</label>
-                    </div>
-                    <div class="flex items-center mt-2">
-                        <input type="radio" name="status" value="In Progress" id="status_in_progress" class="form-radio text-indigo-600">
-                        <label for="status_in_progress" class="ml-2">In Progress</label>
-                    </div>
-                    <div class="flex items-center mt-2">
-                        <input type="radio" name="status" value="Completed" id="status_completed" class="form-radio text-indigo-600">
-                        <label for="status_completed" class="ml-2">Completed</label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="cost" class="text-lg font-bold">نرخ:</label>
-                    <input type="text" name="cost" class="form-input">
-                </div>
-                <div class="mb-4">
-                    <label for="currency" class="text-lg font-bold">دراو:</label>
-                    <div class="flex items-center">
-                        <input type="radio" name="currency" value="IQD" id="currency_iqd" class="form-radio text-indigo-600">
-                        <label for="currency_iqd" class="ml-2">دینار</label>
-                    </div>
-                    <div class="flex items-center mt-2">
-                        <input type="radio" name="currency" value="USD" id="currency_usd" class="form-radio text-indigo-600">
-                        <label for="currency_usd" class="ml-2">دۆلار</label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="date" class="text-lg font-bold">بەروار:</label>
-                    <input type="datetime-local" name="date" class="form-input" value="<?php echo date('Y-m-d\TH:i'); ?>">
-                </div>
-                <div class="mb-4">
-                    <input type="file" name="files[]" multiple>
-                </div>
-                <button type="submit" class="custom-button">زیادکردن ➕</button>
-            </form>
-        </div>
+            </div>
+
+            <div>
+                <label class="form-label">📅 بەروار</label>
+                <input type="datetime-local" name="date"
+                       value="<?= date('Y-m-d\TH:i') ?>"
+                       class="form-control rounded-lg border-2 border-indigo-300" required>
+            </div>
+
+            <div>
+                <label class="form-label">📂 هاوپێچەکان</label>
+                <input type="file" name="files[]" multiple class="form-control rounded-lg border-2 border-indigo-300">
+            </div>
+
+            <div class="flex justify-center gap-4 mt-6">
+                <button type="submit" class="dashboard-btn bg-green-600 hover:bg-green-700">💾 زیادکردن</button>
+                <a href="../views/tasks.php" class="dashboard-btn bg-red-500 hover:bg-red-600">⬅️ گەڕانەوە</a>
+            </div>
+
+        </form>
     </div>
 
     <script>
         function addEmployeeField() {
-            var div = document.createElement("div");
-            div.innerHTML = '<input type="text" name="employee[]" class="form-input">';
-            document.getElementById("employee_fields").appendChild(div);
+            const container = document.getElementById("employee_fields");
+            const input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.setAttribute("name", "employee[]");
+            input.className = "form-control rounded-lg border-2 border-indigo-300 mb-2";
+            container.appendChild(input);
         }
     </script>
 

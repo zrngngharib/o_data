@@ -1,11 +1,13 @@
+
 <?php
 session_start();
-include '../../includes/db.php';
+include_once('../../includes/db.php');
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
+
 
 if (isset($_GET['id'])) {
     $task_id = $_GET['id'];

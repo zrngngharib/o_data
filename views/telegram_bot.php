@@ -1,166 +1,172 @@
-<?php
-// telegram_bot.php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
+<?php
 session_start();
-require_once "../includes/db.php"; // پەیوەندی بە داتابەیس
+include '../includes/db.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+$username = $_SESSION['username'];
+
 
 // API بۆ ناردنی پەیام بۆ گروپی تێلەگرام
 $telegram_api = "https://api.telegram.org/bot7286061251:AAEjEI8uhp0K8yw0Gg_ooq2NYA9J4Z1tJJ8";
 $telegram_chat_id = "-1002256776178";
 
+$message_status = "";
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    // Send pending tasks to Telegram group
     if (isset($_POST['send_pending_tasks'])) {
-        // ناردنی ئەرکەکان بۆ گروپ
         $query = "SELECT * FROM tasks WHERE status IN ('Pending', 'In Progress')";
         $result = mysqli_query($conn, $query);
-        
-        $message = "📌 **ئەرکە تەواو نەکراوەکان:**\n";
+
+        $message = "📌 **ئەرکە تەواو نەکراوەکان:**\n\n";
         if (mysqli_num_rows($result) > 0) {
             while ($row = mysqli_fetch_assoc($result)) {
                 $message .= "🔹 **" . $row['task_name'] . "**\n📍 شوێن: " . $row['location'] . "\n📅 بەروار: " . $row['date'] . "\n\n";
             }
 
             $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode($message));
+
             if ($response === false) {
-                echo "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام.";
+                $message_status = "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام.";
+            } else {
+                $message_status = "✅ پەیامەکان بۆ گروپ نێردرا.";
             }
+
         } else {
-            echo "✅ هیچ ئەرکە تەواو نەکراو نییە.";
+            $message_status = "✅ هیچ ئەرکە تەواو نەکراو نییە.";
         }
     }
 
+    // Send custom message with optional file
     if (isset($_POST['send_custom_message'])) {
-        // ناردنی پەیامی تایبەتی بۆ گروپ
         $name = $_POST['name'];
         $message = $_POST['message'];
 
-        if (!is_dir("uploads")) {
-            mkdir("uploads", 0777, true);
-        }
+        $text = "👤 نێوی ناردەر: $name\n\n✉️ پەیام: $message";
+
+        $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode($text));
 
         if (!empty($_FILES['file']['name'])) {
-            // بارکردنی فایل
             $file_tmp = $_FILES['file']['tmp_name'];
-            $file_name = basename($_FILES['file']['name']); // ڕێگری لە هەڵەکان
-            
+            $file_name = basename($_FILES['file']['name']);
             $upload_path = "uploads/$file_name";
-            if (move_uploaded_file($file_tmp, $upload_path)) {
-                if (file_exists($upload_path)) {
-                    $document = new CURLFile(realpath($upload_path));
-                    $post_fields = [
-                        'chat_id' => $telegram_chat_id,
-                        'document' => $document,
-                        'caption' => "📨 پەیامی نوێ\n👤 ناو: $name\n💬 $message"
-                    ];
 
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type:multipart/form-data"]);
-                    curl_setopt($ch, CURLOPT_URL, "$telegram_api/sendDocument");
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
-                    $response = curl_exec($ch);
-                    curl_close($ch);
-                    
-                    if ($response === false) {
-                        echo "❌ هەڵەی ناردنی فایل بۆ تێلەگرام.";
-                    }
-                } else {
-                    echo "❌ هەڵە: فایل نەدۆزرایەوە.";
-                }
-            } else {
-                echo "❌ هەڵە: نەتوانی فایلی بارکراو بگوازی.";
+            if (!is_dir("uploads")) {
+                mkdir("uploads", 0777, true);
             }
-        } else {
-            $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode("📨 پەیامی نوێ\n👤 ناو: $name\n💬 $message"));
-            if ($response === false) {
-                echo "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام.";
+
+            if (move_uploaded_file($file_tmp, $upload_path)) {
+                $document = new CURLFile(realpath($upload_path));
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, "$telegram_api/sendDocument");
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, [
+                    "chat_id" => $telegram_chat_id,
+                    "document" => $document
+                ]);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $file_result = curl_exec($ch);
+                curl_close($ch);
+
+                if ($file_result === false) {
+                    $message_status .= "\n❌ نەتوانرا فایل نێردرێت.";
+                } else {
+                    $message_status .= "\n✅ فایلەکە نێردرا.";
+                }
             }
         }
+
+        $message_status .= "\n✅ پەیامی تایبەتی نێردرا.";
     }
 }
 ?>
 
-
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بۆتی تیلیگرام</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <title>🤖 بۆتی تیلیگرام - O_Data</title>
+
+    <!-- Bootstrap RTL & TailwindCSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
+    <!-- فۆنتی Zain -->
     <style>
+        @font-face {
+            font-family: 'Zain';
+            src: url('../fonts/Zain.ttf') format('truetype');
+        }
+
         body {
+            font-family: 'Zain', sans-serif !important;
+            background: linear-gradient(135deg, #dee8ff, #f5f7fa);
             direction: rtl;
-            font-family: 'Zain', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            padding: 1.5rem;
+        }
+
+        .btn-telegram {
+            background-color: #4F46E5;
+            color: #fff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-telegram:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-6">
-    <div class="max-w-2xl w-full bg-white shadow-lg rounded-lg p-8">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">بۆتی تیلیگرام</h2>
-        
-        <form method="POST" class="mb-6">
-            <button type="submit" name="send_pending_tasks" class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition" onclick="showPopup('pending')">
-                📢 ناردنی ئەرکە تەواو نەکراوەکان
-            </button>
+<body class="flex flex-col min-h-screen p-4">
+
+    <!-- Header -->
+    <header class="glass max-w-4xl w-full mx-auto mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse">🤖 بۆتی تیلیگرام</h1>
+        <a href="../views/dashboard.php" class="btn btn-danger text-white rounded-pill">🏠 گەڕانەوە</a>
+    </header>
+
+    <!-- Status Message -->
+    <?php if (!empty($message_status)) : ?>
+        <div class="alert alert-info text-center glass"><?= $message_status; ?></div>
+    <?php endif; ?>
+
+    <!-- Pending Tasks Sender -->
+    <section class="glass max-w-4xl w-full mx-auto mb-6 text-center space-y-3">
+        <h2 class="text-xl font-bold text-indigo-600">📋 ناردنی ئەرکە تەواو نەکراوەکان</h2>
+        <form method="POST">
+            <button type="submit" name="send_pending_tasks" class="btn-telegram px-6 py-3 rounded-pill">📤 ناردن بۆ گروپ</button>
         </form>
-        
+    </section>
+
+    <!-- Custom Message Sender -->
+    <section class="glass max-w-4xl w-full mx-auto mb-6 text-center space-y-3">
+        <h2 class="text-xl font-bold text-indigo-600">✉️ ناردنی پەیامی تایبەتی</h2>
         <form method="POST" enctype="multipart/form-data" class="space-y-4">
-            <h3 class="text-xl font-semibold text-gray-700">📨 ناردنی پەیامی تایبەتی</h3>
-            
-            <div>
-                <label class="block text-gray-700 font-medium">👤 ناو:</label>
-                <input type="text" name="name" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div>
-                <label class="block text-gray-700 font-medium">💬 پەیام:</label>
-                <textarea name="message" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-            </div>
-            
-            <div>
-                <label class="block text-gray-700 font-medium">📎 بارکردنی فایل:</label>
-                <input type="file" name="file" class="w-full border border-gray-300 rounded-lg p-3">
-            </div>
-            
-            <button type="submit" name="send_custom_message" class="w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition" onclick="showPopup('custom')">
-                📤 ناردنی پەیام
-            </button>
+            <input type="text" name="name" class="form-control rounded-pill text-center" placeholder="👤 بۆ" required>
+            <textarea name="message" class="form-control rounded-2xl text-center" rows="4" placeholder="✉️ پەیام" required></textarea>
+            <input type="file" name="file" class="form-control rounded-pill text-center">
+            <button type="submit" name="send_custom_message" class="btn-telegram px-6 py-3 rounded-pill">📤 ناردنی پەیام</button>
         </form>
-    </div>
+    </section>
 
-    <!-- Popup Notification -->
-    <div id="popup" class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p id="popup-message" class="text-lg font-semibold text-gray-800">✅ پەیامەکەت بە سەرکەوتوویی نێردرا!</p>
-        </div>
-    </div>
+    <!-- Footer -->
+    <footer class="text-center mt-12 text-gray-600 text-sm">
+        &copy; <?= date('Y'); ?> O_Data - هەموو مافەکان پارێزراون
+    </footer>
 
-    <script>
-        function showPopup(type) {
-            const popup = document.getElementById("popup");
-            const message = document.getElementById("popup-message");
-            
-            if (type === 'pending') {
-                message.textContent = "✅ ئەرکەکان بە سەرکەوتوویی نێردران!";
-            } else {
-                message.textContent = "✅ پەیامەکەت بە سەرکەوتوویی نێردرا!";
-            }
-            
-            popup.classList.remove("hidden");
-            
-            setTimeout(() => {
-                popup.classList.add("hidden");
-            }, 2000);
-        }
-    </script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <?php
 session_start();
-include '../../db.php';
+include '../../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
 
@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <br>
         <label>تیم:</label>
         <select name="team">
-            <option value="داخلی">داخلی</option>
+            <option value="داخلی">تەکنیکی</option>
             <option value="دەرەکی">دەرەکی</option>
         </select>
         <br>

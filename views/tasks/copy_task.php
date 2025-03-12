@@ -2,8 +2,8 @@
 session_start();
 include '../../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
 

@@ -2,10 +2,11 @@
 session_start();
 include_once dirname(__DIR__, 2) . '/includes/db.php';
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
     exit();
 }
+
 
 // ڕوونکردنەوەی هەڵەکان
 ini_set('display_errors', 1);
