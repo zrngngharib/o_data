@@ -124,16 +124,16 @@ $result = mysqli_query($conn, $query);
                 <tr class="text-center">
                     <th class="p-3 border-b-4 border-indigo-500">🎯</th>
                     <th class="p-3 border-b-4 border-indigo-500">ID</th>
-                    <th class="p-3 border-b-4 border-indigo-500">ئەرك</th>
-                    <th class="p-3 border-b-4 border-indigo-500">ژمارە</th>
-                    <th class="p-3 border-b-4 border-indigo-500">شوێن</th>
-                    <th class="p-3 border-b-4 border-indigo-500">کارمەند</th>
-                    <th class="p-3 border-b-4 border-indigo-500">مۆبایل</th>
-                    <th class="p-3 border-b-4 border-indigo-500">تیم</th>
-                    <th class="p-3 border-b-4 border-indigo-500"> حاڵەت</th>
-                    <th class="p-3 border-b-4 border-indigo-500">نرخ</th>
-                    <th class="p-3 border-b-4 border-indigo-500">بەروار</th>
-                    <th class="p-3 border-b-4 border-indigo-500">کردارەکان</th>
+                    <th class="p-2 border-b-4 border-indigo-500">ئەرك</th>
+                    <th class="p-1 border-b-4 border-indigo-500">ژمارە</th>
+                    <th class="p-1 border-b-4 border-indigo-500">شوێن</th>
+                    <th class="p-1 border-b-4 border-indigo-500">کارمەند</th>
+                    <th class="p-1 border-b-4 border-indigo-500">مۆبایل</th>
+                    <th class="p-1 border-b-4 border-indigo-500">تیم</th>
+                    <th class="p-1 border-b-4 border-indigo-500"> حاڵەت</th>
+                    <th class="p-1 border-b-4 border-indigo-500">نرخ</th>
+                    <th class="p-2 border-b-4 border-indigo-500">بەروار</th>
+                    <th class="p-2 border-b-4 border-indigo-500">کردارەکان</th>
                 </tr>
             </thead>
 
@@ -142,12 +142,12 @@ $result = mysqli_query($conn, $query);
                 <tr class="bg-white border-b hover:bg-indigo-50 transition-all duration-300 text-center">
                     <td class="px-3 py-2 break-words whitespace-normal"><input type="checkbox" name="selected_tasks[]" value="<?= $row['id'] ?>"></td>
                     <td class="px-3 py-2 break-words whitespace-normal"><?= $row['id'] ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['task_name']) ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['task_number']) ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['location']) ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['employee']) ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['mobile_number']) ?></td>
-                    <td class="px-3 py-2 break-words whitespace-normal">
+                    <td class="px-1 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['task_name']) ?></td>
+                    <td class="px-1 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['task_number']) ?></td>
+                    <td class="px-1 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['location']) ?></td>
+                    <td class="px-1 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['employee']) ?></td>
+                    <td class="px-1 py-2 break-words whitespace-normal"><?= htmlspecialchars($row['mobile_number']) ?></td>
+                    <td class="px-1 py-2 break-words whitespace-normal">
                         <span class="inline-block px-2 py-1 rounded-full text-xs font-medium 
                             <?= $row['team'] === 'Internal' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
                             <?= htmlspecialchars($row['team']) ?>
@@ -160,9 +160,9 @@ $result = mysqli_query($conn, $query);
                             <?= htmlspecialchars($row['status']) ?>
                         </span>
                     </td>
-                    <td class="p-3 break-words whitespace-normal"><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
-                    <td class="p-3 break-words whitespace-normal"><?= htmlspecialchars($row['date']) ?></td>
-                    <td class="p-3 flex justify-center gap-2">
+                    <td class="p-2 break-words whitespace-normal"><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
+                    <td class="p-2 break-words whitespace-normal"><?= htmlspecialchars($row['date']) ?></td>
+                    <td class="p-2 flex justify-center gap-2">
                         <a href="tasks/edit_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition">✏️</a>
                         <a href="tasks/copy_task.php?id=<?= $row['id'] ?>" class="px-3 py-1 text-white bg-green-500 rounded-md hover:bg-green-600 transition">📋</a>
                     </td>

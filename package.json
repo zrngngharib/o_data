@@ -1,0 +1,23 @@
+{
+  "name": "o_data",
+  "version": "1.0.0",
+  "description": "تایبەت مەندیەکانی\r 1- فۆنتی گونجاو  بەناوی (Calibri) فۆنتی سەرەکی بەرنامەکە بێت\r 2-پڕۆژەکە بەکوردی بێت و RTL بێت\r 3-دیزان لە ڕوی ڕەنگ و لاپەڕەکان و پێکهاتەی خانە و دوگمە و ..هتد لەم لینکە وەربگرە(https://prium.github.io/phoenix/v1.21.0/index.html?theme-control=true&navigation-type=vertical)\r 4- تەواو ڕیسپۆنسیڤ بێت بۆ براوسەری مۆبایل و ئایپاد.\r 5- پڕۆژەکە لۆکاڵیەوە و تەنها لەسەر ئەو دیڤایسانە دەکرێتەوە کە لەسەر هەمان نێتوۆرکە لەڕێگای ئایپی و براوسەرەوە.\r 6- من xampp و mysql بەکاردێنم و دەمەوێت زمانی دروست کردنی پڕۆژەی وێبەکەم تۆ دیاری بکەم کە هەم خێرا بێت و هەم پێکهاتەی زۆربێت و هەموو شتێکی تێدابێت .",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zrngngharib/o_data.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zrngngharib/o_data/issues"
+  },
+  "homepage": "https://github.com/zrngngharib/o_data#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.0.14"
+  }
+}
