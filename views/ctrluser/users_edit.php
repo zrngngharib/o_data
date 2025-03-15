@@ -8,6 +8,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Admin access only
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
+
 if (!isset($_GET['id'])) {
     echo "<script>alert('ID دیاری نەکرا!'); window.location.href='users.php';</script>";
     exit();
@@ -29,11 +35,12 @@ if (isset($_POST['update_user'])) {
     $username = strtolower(trim($_POST['username']));
     $role = trim($_POST['role']);
     $password = trim($_POST['password']);
+    $status = trim($_POST['status']);
 
-    if (empty($username) || empty($role)) {
-        echo "<script>alert('تکایە ناو و ڕۆڵ پڕبکەرەوە!');</script>";
+    if (empty($username) || empty($role) || empty($status)) {
+        echo "<script>alert('تکایە ناو، ڕۆڵ و حاڵەت پڕبکەرەوە!');</script>";
     } else {
-        $update_query = "UPDATE users SET username = '$username', role = '$role'";
+        $update_query = "UPDATE users SET username = '$username', role = '$role', status = '$status'";
 
         if (!empty($password)) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -111,6 +118,16 @@ if (isset($_POST['update_user'])) {
                 <select name="role" class="form-select rounded-pill py-2 px-3" required>
                     <option value="User" <?= ($user['role'] == 'User') ? 'selected' : ''; ?>>User</option>
                     <option value="Admin" <?= ($user['role'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="form-label text-sm">حاڵەت</label>
+                <select name="status" class="form-select rounded-pill py-2 px-3" required>
+                    <option value="active" <?= ($user['status'] == 'active') ? 'selected' : ''; ?>>Active</option>
+                    <option value="inactive" <?= ($user['status'] == 'inactive') ? 'selected' : ''; ?>>Inactive</option>
+                    <option value="banned" <?= ($user['status'] == 'banned') ? 'selected' : ''; ?>>Banned</option>
                 </select>
             </div>
 

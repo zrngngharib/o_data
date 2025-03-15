@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $employee = implode(',', $_POST['employee'] ?? []);
     $mobile_number = $_POST['mobile_number'] ?? '';
     $team = $_POST['team'] ?? 'تەکنیکی';
-    $status = $_POST['status'] ?? 'Pending';
+    $status = $_POST['status'] ?? 'چاوەڕوانی';
     $cost = $_POST['cost'] ?? '';
     $currency = $_POST['currency'] ?? 'IQD';
     $date = $_POST['date'] ?? date('Y-m-d H:i:s');
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uploadedFiles = $_POST['uploaded_files'] ?? ''; // URLs from Cloudinary!
 
     $completion_date = null;
-    if ($status === 'Completed') {
+    if ($status === 'تەواوکراوە') {
         $completion_date = date('Y-m-d H:i:s');
     }
 

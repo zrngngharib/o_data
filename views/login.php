@@ -1,34 +1,43 @@
 <?php
 session_start();
-include_once('../includes/db.php');
+include_once('../includes/db.php'); // بەکارهێنانی فایلەکانی پارەگرتنەوەی داتابەیسەکە
 
-session_start();
+// چیک کردنی ئەگەر یوزەری پێشتر لۆگین کردووە
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: dashboard.php"); // ئەگەر یوزەر لۆگین کردووە، بەرەوە پەیجی داشبۆرد
     exit();
 }
 
 $error = "";
 
+// کاتێک فۆرمی لۆگین پەیامە بەشێوەی پەیوەندیدار دروست دەکەین
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password'];
+    $username = mysqli_real_escape_string($conn, $_POST['username']); // کۆدی تایبەتی کردنەوەی بەکارهێنەر
+    $password = $_POST['password']; // وەشەی نهێنی
 
-    $query = "SELECT * FROM users WHERE username = '$username' AND status = 'active'";
-    $result = mysqli_query($conn, $query);
+    // فڕۆشتنی یوزەرەکان بە شێوەی تایبەتمەندەکان
+    $query = "SELECT * FROM users WHERE username = '$username' AND status = 'active'"; // یەکەمی تایبەتمەندەکان
+    $result = mysqli_query($conn, $query); // کۆمەڵە یەکەکان
 
+    // ئەگەر یوزەری تایبەتمەندی بەرەوە داناوە
     if (mysqli_num_rows($result) === 1) {
         $user = mysqli_fetch_assoc($result);
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
+        if (password_verify($password, $user['password'])) { // تایبەتمەندی بە شێوەی تایبەتمەندەکان
+            $_SESSION['user_id'] = $user['id']; // هەڵوەشاندنی زانیاری
+            $_SESSION['username'] = $user['username']; // تایبەتمەندی یوزەرەکان
+            $_SESSION['role'] = $user['role']; // تایبەتمەندانی `role`
 
+            // هەوڵدان بەرەوە تایبەتمەندەکان
             if (isset($_POST['remember_me'])) {
                 setcookie('remember_me', $user['id'], time() + (30 * 24 * 60 * 60), "/");
             }
 
-            header("Location: dashboard.php");
+            // ڕووداوی بەرەوە پەیجی تایبەتمەندیەکان بەرەوە
+            if ($_SESSION['role'] == 'admin') {
+                header("Location: dashboard.php"); // ئەگەر ئەدمین بێت
+            } else {
+                header("Location: dashboard.php"); // یوزەرەکان
+            }
             exit();
         } else {
             $error = "❌ وشەی نهێنی هەڵە!";
@@ -36,13 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error = "❌ بەکارهێنەر نەدۆزرایەوە!";
     }
-}
-?>
-<?php
-session_start();
-if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
-    exit();
 }
 ?>
 
@@ -88,7 +90,9 @@ if (isset($_SESSION['user_id'])) {
         
         <!-- Login Form -->
         <form action="login.php" method="POST" class="space-y-4">
-            
+            <?php if ($error): ?>
+                <div class="alert alert-danger"><?php echo $error; ?></div>
+            <?php endif; ?>
             <!-- Username -->
             <div>
                 <label class="form-label text-sm">ناوی بەکارهێنەر</label>

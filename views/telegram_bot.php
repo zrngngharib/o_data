@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 include '../includes/db.php';
@@ -10,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $username = $_SESSION['username'];
 
-
 // API بۆ ناردنی پەیام بۆ گروپی تێلەگرام
 $telegram_api = "https://api.telegram.org/bot7286061251:AAEjEI8uhp0K8yw0Gg_ooq2NYA9J4Z1tJJ8";
 $telegram_chat_id = "-1002256776178";
@@ -21,19 +19,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Send pending tasks to Telegram group
     if (isset($_POST['send_pending_tasks'])) {
-        $query = "SELECT * FROM tasks WHERE status IN ('Pending', 'In Progress')";
+        $query = "SELECT * FROM tasks WHERE status IN ('چاوەڕوانی', 'دەستپێکراوە')";
         $result = mysqli_query($conn, $query);
 
         $message = "📌 **ئەرکە تەواو نەکراوەکان:**\n\n";
         if (mysqli_num_rows($result) > 0) {
             while ($row = mysqli_fetch_assoc($result)) {
-                $message .= "🔹 **" . $row['task_name'] . "**\n📍 شوێن: " . $row['location'] . "\n📅 بەروار: " . $row['date'] . "\n\n";
+                $message .= "\n🔹 ئەرک: **" . $row['task_name'] . "**\n📍 شوێن: " . $row['location'] . "\n🔢 ژمارە: " . $row['task_number'] . "\n📅 بەروار: " . $row['date'] . "\n👥 تیم: " . $row['team'] . "\n📂 هاوپێچ: " . $row['files'];
             }
 
             $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode($message));
+            $response_data = json_decode($response, true);
 
-            if ($response === false) {
-                $message_status = "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام.";
+            if ($response === false || !$response_data['ok']) {
+                $message_status = "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام: " . $response_data['description'];
             } else {
                 $message_status = "✅ پەیامەکان بۆ گروپ نێردرا.";
             }
@@ -51,6 +50,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $text = "👤 نێوی ناردەر: $name\n\n✉️ پەیام: $message";
 
         $response = file_get_contents("$telegram_api/sendMessage?chat_id=$telegram_chat_id&text=" . urlencode($text));
+        $response_data = json_decode($response, true);
+
+        if ($response === false || !$response_data['ok']) {
+            $message_status = "❌ هەڵەی ناردنی پەیام بۆ تێلەگرام: " . $response_data['description'];
+        } else {
+            $message_status = "✅ پەیامی تایبەتی نێردرا.";
+        }
 
         if (!empty($_FILES['file']['name'])) {
             $file_tmp = $_FILES['file']['tmp_name'];
@@ -72,17 +78,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ]);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 $file_result = curl_exec($ch);
+                $file_response_data = json_decode($file_result, true);
                 curl_close($ch);
 
-                if ($file_result === false) {
-                    $message_status .= "\n❌ نەتوانرا فایل نێردرێت.";
+                if ($file_result === false || !$file_response_data['ok']) {
+                    $message_status .= "\n❌ نەتوانرا فایل نێردرێت: " . $file_response_data['description'];
                 } else {
                     $message_status .= "\n✅ فایلەکە نێردرا.";
                 }
             }
         }
-
-        $message_status .= "\n✅ پەیامی تایبەتی نێردرا.";
     }
 }
 ?>

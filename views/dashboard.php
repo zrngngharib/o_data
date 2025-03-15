@@ -1,6 +1,9 @@
 <?php
 session_start();
 include_once('../includes/db.php');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
@@ -22,9 +25,9 @@ if (mysqli_num_rows($user_query) == 0) {
 // Global Stats
 $query = "SELECT 
     (SELECT COUNT(*) FROM tasks) AS all_tasks,
-    (SELECT COUNT(*) FROM tasks WHERE status = 'completed') AS completed_tasks,
-    (SELECT COUNT(*) FROM tasks WHERE status = 'pending') AS pending_tasks,
-    (SELECT COUNT(*) FROM users WHERE created_at >= CURDATE()) AS new_users,
+    (SELECT COUNT(*) FROM tasks WHERE status = 'تەواوکراوە') AS completed_tasks,
+    (SELECT COUNT(*) FROM tasks WHERE status = 'چاوەڕوانی') AS pending_tasks,
+    (SELECT COUNT(*) FROM users) AS total_users,
     (SELECT COUNT(*) FROM devices) AS devices";
 
 $result = mysqli_query($conn, $query);
@@ -33,14 +36,14 @@ $row = mysqli_fetch_assoc($result);
 $all_tasks_count = $row['all_tasks'];
 $completed_tasks_count = $row['completed_tasks'];
 $pending_tasks_count = $row['pending_tasks'];
-$new_users_count = $row['new_users'];
+$total_users_count = $row['total_users'];
 $devices_count = $row['devices'];
 
 // Daily Completed Tasks
 $dailyTasksQuery = mysqli_query($conn, "
     SELECT DATE(completion_date) AS day, COUNT(*) AS count 
     FROM tasks 
-    WHERE status = 'completed' 
+    WHERE status = 'تەواوکراوە' 
     GROUP BY day 
     ORDER BY day ASC
 ");
@@ -54,7 +57,7 @@ while ($r = mysqli_fetch_assoc($dailyTasksQuery)) {
 $monthlyTasksQuery = mysqli_query($conn, "
     SELECT DATE_FORMAT(completion_date, '%Y-%m') AS month, COUNT(*) AS count 
     FROM tasks 
-    WHERE status = 'completed' 
+    WHERE status = 'تەواوکراوە' 
     GROUP BY month 
     ORDER BY month ASC
 ");
@@ -70,7 +73,7 @@ while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 داشبۆرد - O_Data</title>
+    <title>داشبۆرد - O_Data</title>
 
     <!-- Bootstrap RTL & TailwindCSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -79,6 +82,9 @@ while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
     <!-- Chart.js & Animate.css -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
 
     <!-- فۆنتی Zain -->
     <style>
@@ -129,55 +135,55 @@ while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
 
     <!-- Header -->
     <header class="glass max-w-7xl w-full mx-auto mb-6 flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse">📊 داشبۆرد - O_Data</h1>
+        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse"><i class="fas fa-chart-line"></i> داشبۆرد - O_Data</h1>
         <div class="flex gap-3 items-center">
-            <span class="text-sm text-gray-700">👤 <?= htmlspecialchars($username); ?></span>
-            <a href="../logout.php" class="btn btn-danger text-white rounded-pill">🚪 دەرچوون</a>
+            <span class="text-sm text-gray-700"><i class="fas fa-user"></i> <?= htmlspecialchars($username); ?></span>
+            <a href="../views/ctrluser/logout.php" class="btn btn-danger text-white rounded-pill"><i class="fas fa-sign-out-alt"></i> دەرچوون</a>
         </div>
     </header>
 
     <!-- Welcome -->
     <section class="glass max-w-7xl w-full mx-auto mb-6 text-center space-y-3">
-        <h2 class="text-2xl font-bold text-indigo-600 animate-pulse">👋 بەخێربێیت، <?= htmlspecialchars($username); ?></h2>
+        <h2 class="text-2xl font-bold text-indigo-600 animate-pulse"><i class="fas fa-hand-sparkles"></i> بەخێربێیت، <?= htmlspecialchars($username); ?></h2>
     </section>
 
     <!-- Navigation Buttons -->
     <div class="glass flex flex-wrap justify-center gap-4 max-w-7xl w-full mx-auto mb-6 btn-group">
-        <a href="/o_data/views/tasks.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">📌 ئەركەكانی ڕۆژانە</a>
-        <a href="/o_data/views/devices.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">⚙️ ئامێرەكان</a>
-        <a href="/o_data/views/ctrluser/users.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">👥 بەكارهێنەران</a>
-        <a href="/o_data/views/telegram_bot.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">🤖 بۆتی تیلیگرام</a>
-        <a href="/o_data/views/daily_check.php" class="dashboard-btn px-6 py-3 rounded-pill text-center">🏥 پشکنینی ڕۆژانە</a>
+        <a href="/o_data/views/tasks.php" class="dashboard-btn px-6 py-3 rounded-pill text-center"><i class="fas fa-thumbtack"></i> ئەركەكانی ڕۆژانە</a>
+        <a href="/o_data/views/devices.php" class="dashboard-btn px-6 py-3 rounded-pill text-center"><i class="fas fa-cogs"></i> ئامێرەكان</a>
+        <a href="/o_data/views/ctrluser/users.php" class="dashboard-btn px-6 py-3 rounded-pill text-center"><i class="fas fa-users"></i> بەكارهێنەران</a>
+        <a href="/o_data/views/telegram_bot.php" class="dashboard-btn px-6 py-3 rounded-pill text-center"><i class="fas fa-robot"></i> بۆتی تیلیگرام</a>
+        <a href="/o_data/views/daily_check.php" class="dashboard-btn px-6 py-3 rounded-pill text-center"><i class="fas fa-stethoscope"></i> پشکنینی ڕۆژانە</a>
     </div>
 
     <!-- Stats -->
     <section class="glass max-w-7xl w-full mx-auto mt-10 flex flex-wrap justify-center gap-6 text-center">
         <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
-            <div class="text-4xl">📊</div>
+            <div class="text-4xl"><i class="fas fa-tasks"></i></div>
             <h3 class="text-lg font-bold">هەموو کارەکان</h3>
             <p class="text-3xl font-bold"><?= $all_tasks_count; ?></p>
         </div>
 
         <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
-            <div class="text-4xl">✅</div>
+            <div class="text-4xl"><i class="fas fa-check-circle"></i></div>
             <h3 class="text-lg font-bold">کارە تەواوبووەکان</h3>
             <p class="text-3xl font-bold"><?= $completed_tasks_count; ?></p>
         </div>
 
         <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
-            <div class="text-4xl">⏳</div>
+            <div class="text-4xl"><i class="fas fa-hourglass-half"></i></div>
             <h3 class="text-lg font-bold">چاوەڕوانی</h3>
             <p class="text-3xl font-bold"><?= $pending_tasks_count; ?></p>
         </div>
 
         <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
-            <div class="text-4xl">🚀</div>
-            <h3 class="text-lg font-bold">داهاتنی بەکارهێنەران</h3>
-            <p class="text-3xl font-bold"><?= $new_users_count; ?></p>
+            <div class="text-4xl"><i class="fas fa-users"></i></div>
+            <h3 class="text-lg font-bold"> بەکارهێنەران</h3>
+            <p class="text-3xl font-bold"><?= $total_users_count; ?></p>
         </div>
 
         <div class="flex flex-col items-center justify-center space-y-2 w-48 p-4 glass animate__animated animate__fadeInUp">
-            <div class="text-4xl">⚙️</div>
+            <div class="text-4xl"><i class="fas fa-cogs"></i></div>
             <h3 class="text-lg font-bold">ئامێرەکان</h3>
             <p class="text-3xl font-bold"><?= $devices_count; ?></p>
         </div>
@@ -185,18 +191,18 @@ while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
 
     <!-- Reports Section (Charts) -->
     <section class="glass max-w-7xl w-full mx-auto mt-10 p-6 text-center">
-        <h2 class="text-xl font-bold text-indigo-600 mb-6">📈 ڕاپۆرتەکان</h2>
+        <h2 class="text-xl font-bold text-indigo-600 mb-6"><i class="fas fa-chart-bar"></i> ڕاپۆرتەکان</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Daily Tasks Bar Chart -->
             <div class="bg-white rounded-2xl p-4 shadow-md">
-                <h3 class="text-lg font-bold mb-3">📅 ڕاپۆرتی ڕۆژانە</h3>
+                <h3 class="text-lg font-bold mb-3"><i class="fas fa-calendar-day"></i> ڕاپۆرتی ڕۆژانە</h3>
                 <canvas id="dailyCompletedTasksChart"></canvas>
             </div>
             
             <!-- Monthly Tasks Bar Chart -->
             <div class="bg-white rounded-2xl p-4 shadow-md">
-                <h3 class="text-lg font-bold mb-3">🗓️ ڕاپۆرتی مانگانە</h3>
+                <h3 class="text-lg font-bold mb-3"><i class="fas fa-calendar-alt"></i> ڕاپۆرتی مانگانە</h3>
                 <canvas id="monthlyCompletedTasksChart"></canvas>
             </div>
         </div>

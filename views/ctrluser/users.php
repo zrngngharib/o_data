@@ -8,6 +8,23 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Admin access only
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
+
+// Check if the user is an admin
+$user_id = $_SESSION['user_id'];
+$query = "SELECT role FROM users WHERE id = $user_id";
+$result = mysqli_query($conn, $query);
+$user = mysqli_fetch_assoc($result);
+
+if ($user['role'] !== 'admin') {
+    header("Location: ../../index.php");
+    exit();
+}
+
 // گرتنی هەموو بەکارهێنەران
 $query = "SELECT * FROM users ORDER BY id DESC";
 $result = mysqli_query($conn, $query);

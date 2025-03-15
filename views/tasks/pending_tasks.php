@@ -14,7 +14,7 @@ error_reporting(E_ALL);
 
 // ڕیزبەندی بەپێی بەروار
 $order = isset($_GET['order']) && $_GET['order'] == 'asc' ? 'ASC' : 'DESC';
-$query = "SELECT * FROM tasks WHERE status IN ('Pending', 'In Progress') ORDER BY date $order";
+$query = "SELECT * FROM tasks WHERE status IN ('چاوەڕوانی', 'دەستپێکراوە') ORDER BY date $order";
 $result = mysqli_query($conn, $query);
 if (!$result) {
     die("کێشە لە ناردنی داتا: " . mysqli_error($conn));
@@ -27,7 +27,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⏳ کارە چاوەڕوانەکان</title>
+    <title>کارە چاوەڕوانەکان</title>
 
     <!-- TailwindCSS + Bootstrap RTL -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -37,14 +37,18 @@ if (!$result) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 
     <!-- Custom Fonts -->
+
     <style>
         @font-face {
             font-family: 'Zain';
-            src: url('../fonts/Zain.ttf');
+            src: url('../../fonts/Zain.ttf');
+        }
+
+        body, h1, .btn, .table, .status, .dropdown-menu, .dropdown-item {
+            font-family: 'Zain', sans-serif;
         }
 
         body {
-            font-family: 'Zain', sans-serif;
             background: linear-gradient(135deg, #dee8ff, #f5f7fa);
             color: #333;
         }
@@ -68,7 +72,7 @@ if (!$result) {
             padding: 0.6rem 1.4rem;
             border-radius: 1.5rem;
             transition: 0.3s;
-            font-weight: bold;
+
         }
 
         .btn-custom:hover {
@@ -76,95 +80,82 @@ if (!$result) {
             transform: scale(1.05);
             box-shadow: 0 8px 15px rgba(79, 70, 229, 0.4);
         }
+        /* Table Styles */
+        table {
+            border-spacing: 0 10px;
+            width: 100%;
 
-        .table-container {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
-
-        .task-table th {
+        thead tr {
             background-color: #4F46E5;
-            color: #fff;
+            color: white;
+        }
+        tbody tr {
+            background-color: #fff;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        tbody tr:hover {
+            background-color: #f0f4ff;
+        }
+        td, th {
+            padding: 12px 5px;
             text-align: center;
-            padding: 12px;
+        }
+        .table-actions button {
+            transition: all 0.2s ease-in-out;
+        }
+        .table-actions button:hover {
+            transform: scale(1.1);
         }
 
-        .task-table td {
-            text-align: center;
-            padding: 12px;
-        }
-
-        .task-table tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 25px;
-            color: #fff;
-        }
-
-        .pending {
-            background-color: #FBBF24;
-        }
-
-        .in-progress {
-            background-color: #3B82F6;
-        }
-
-        .completed {
-            background-color: #10B981;
-        }
-
-        .dropdown-menu {
-            min-width: 160px;
-            border-radius: 8px;
-            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .dropdown-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        .hidden {
-            display: none;
+        /* Responsive */
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            tbody tr {
+                margin-bottom: 10px;
+            }
+            td {
+                padding: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                border-bottom: 1px solid #eee;
+            }
+            td:before {
+                content: attr(data-label);
+                font-weight: bold;
+            }
         }
     </style>
+
 </head>
 
 <body class="p-4">
     <header class="glass max-w-7xl mx-auto mb-6 flex justify-between items-center p-4">
-        <h1 class="text-3xl font-bold text-indigo-700">⏳ کارە چاوەڕوانەکان</h1>
+        <h1 class="text-3xl text-indigo-700">کارە چاوەڕوانەکان</h1>
         <div class="flex gap-3 items-center">
-            <span>👤 <?= htmlspecialchars($username); ?></span>
-            <a href="../../ctrluser/logout.php" class="btn btn-danger">🚪 دەرچوون</a>
+            <span><i class="fa-solid fa-user-tie"></i> <?= htmlspecialchars($username); ?></span>
+            <a href="../tasks.php" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> گەڕانەوە</a>
         </div>
     </header>
 
     <!-- Table -->
-    <div class="glass max-w-7xl mx-auto p-4 overflow-x-auto animate-zoom-in table-container">
-        <table class="table task-table">
+    <div class="glass max-w-7xl mx-auto p-4 overflow-x-auto">
+        <table>
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>ئەرك </th>
-                    <th>ژمارە </th>
-                    <th>شوێن </th>
-                    <th>کارمەند </th>
-                    <th>تیم </th>
-                    <th>حاڵەت </th>
-                    <th>بەروار </th>
+                    <th>ئەرك</th>
+                    <th>ژمارە</th>
+                    <th>شوێن</th>
+                    <th>کارمەند</th>
+                    <th>تیم</th>
+                    <th>حاڵەت</th>
+                    <th>بەروار</th>
                     <th>تێپەڕبوون</th>
                 </tr>
             </thead>
@@ -183,14 +174,21 @@ if (!$result) {
                     }
                 ?>
                     <tr>
-                        <td><?= htmlspecialchars($row['id']) ?></td>
-                        <td><?= htmlspecialchars($row['task_name']) ?></td>
-                        <td><?= htmlspecialchars($row['task_number']) ?></td>
-                        <td><?= htmlspecialchars($row['location']) ?></td>
-                        <td><?= htmlspecialchars($row['employee']) ?></td>
-                        <td><?= htmlspecialchars($row['team']) ?></td>
-                        <td>
-                            <span class="status <?= $row['status'] == 'Pending' ? 'pending' : ($row['status'] == 'In Progress' ? 'in-progress' : 'completed') ?>">
+                        <td data-label="ID"><?= $row['id'] ?></td>
+                        <td data-label="ئەرك"><?= htmlspecialchars($row['task_name']) ?></td>
+                        <td data-label="ژمارە"><?= htmlspecialchars($row['task_number']) ?></td>
+                        <td data-label="شوێن"><?= htmlspecialchars($row['location']) ?></td>
+                        <td data-label="کارمەند"><?= htmlspecialchars($row['employee']) ?></td>
+                        <td data-label="تیم">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium
+                                <?= $row['team'] === 'تەکنیکی' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
+                                <?= htmlspecialchars($row['team']) ?>
+                            </span>
+                        </td>
+                        <td data-label="حاڵەت">
+                            <span class="px-3 py-1 rounded-full text-xs 
+                                <?= $row['status'] === 'چاوەڕوانی' ? 'bg-yellow-100 text-yellow-800' :
+                                    ($row['status'] === 'دەستپێکراوە' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') ?>">
                                 <?= htmlspecialchars($row['status']) ?>
                             </span>
                         </td>
@@ -202,10 +200,6 @@ if (!$result) {
         </table>
     </div>
 
-    <!-- Floating Add Button -->
-    <div class="fab fixed bottom-4 left-4 bg-blue-700 text-white text-xl p-4 rounded-full shadow-lg hover:bg-blue-800 transition" onclick="window.location.href='add_task.php'">
-        ➕
-    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

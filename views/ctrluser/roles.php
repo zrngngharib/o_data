@@ -7,6 +7,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Admin access only
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
+
 // Process update role (Optional, Processing logic - OK)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = intval($_POST['user_id']);

@@ -1,6 +1,8 @@
 <?php
 session_start();
 include '../../includes/db.php'; // ڕێڕەوی دروست بۆ `db.php`
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
@@ -24,10 +26,15 @@ if (isset($_GET['id'])) {
         $cost = $row['cost'];
         $currency = $row['currency'];
         $date = date('Y-m-d H:i:s'); // بەرواری نوێ
+        $files = $row['files']; // Copy the links of the uploaded files
+        $completion_date = null;
+        if ($status == 'تەواوکراوە') {
+            $completion_date = date('Y-m-d H:i:s');
+        }
 
         // زیادکردنی کارە نوێیەکە
-        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date) 
-                  VALUES ('$task_name', '$task_number', '$location', '$employee', '$mobile_number', '$team', '$status', '$cost', '$currency', '$date')";
+        $query = "INSERT INTO tasks (task_name, task_number, location, employee, mobile_number, team, status, cost, currency, date, files, completion_date) 
+                  VALUES ('$task_name', '$task_number', '$location', '$employee', '$mobile_number', '$team', '$status', '$cost', '$currency', '$date', '$files', '$completion_date')";
         mysqli_query($conn, $query);
     }
 }
@@ -35,6 +42,7 @@ if (isset($_GET['id'])) {
 header('Location: ../tasks.php');
 exit();
 ?>
+
 <!DOCTYPE html>
 <html lang="ku">
 <head>
@@ -69,9 +77,9 @@ exit();
         <br>
         <label>حاڵەت:</label>
         <select name="status">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
+            <option value="چاوەڕوانی">چاوەڕوانی</option>
+            <option value="دەستپێکراوە">دەستپێکراوە</option>
+            <option value="تەواوکراوە">تەواوکراوە</option>
         </select>
         <br>
         <label>نرخ:</label>
@@ -86,6 +94,7 @@ exit();
         <br>
         <button type="submit">زیادکردن</button>
         <button type="button" onclick="window.location.href='tasks.php'">پاشگەزبوونەوە</button>
+
     </form>
 </body>
 </html>

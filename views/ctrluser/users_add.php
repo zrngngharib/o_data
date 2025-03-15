@@ -9,6 +9,11 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit();
 }
+// Admin access only
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "Form submitted"; // Debugging line
@@ -16,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mobile = trim(mysqli_real_escape_string($conn, $_POST['mobile']));
     $password = $_POST['password'];
     $role = $_POST['role'];
-    $status = $_POST['status'];
+    $status = $_POST['status']; // Capture the status field
 
     echo "Form data: $username, $mobile, $password, $role, $status"; // Debugging line
 
@@ -101,6 +106,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="role" class="form-select rounded-pill py-2 px-3" required>
                     <option value="User">User</option>
                     <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="form-label text-sm">حاڵەت</label>
+                <select name="status" class="form-select rounded-pill py-2 px-3" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="banned">Banned</option>
                 </select>
             </div>
 

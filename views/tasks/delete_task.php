@@ -64,9 +64,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <br>
         <label>حاڵەت:</label>
         <select name="status">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
+            <option value="چاوەڕوانی">چاوەڕوانی</option>
+            <option value="دەستپێکراوە">دەستپێکراوە</option>
+            <option value="تەواوکراوە">تەواوکراوە</option>
         </select>
         <br>
         <label>نرخ:</label>

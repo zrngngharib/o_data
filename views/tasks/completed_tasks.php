@@ -7,351 +7,320 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+$username = $_SESSION['username'] ?? 'میوان';
 
 // ڕوونکردنەوەی هەڵەکان
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// فلتەرکردنی بەروار
-$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
-$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+// ڕادەی فلتەر بۆ بەروار
+$from_date = $_GET['from_date'] ?? '';
+$to_date = $_GET['to_date'] ?? '';
 
-$query = "SELECT *, DATEDIFF(completion_date, date) AS days_to_complete FROM tasks WHERE status = 'Completed'";
+if (empty($from_date) || empty($to_date)) {
+    $current_year = date('Y');
+    $current_month = date('m');
+    $from_date = "$current_year-$current_month-01";
+    $to_date = date("Y-m-t", strtotime($from_date));
+}
+// ❗ کوێری داتابەیس
+$query = "
+    SELECT 
+        id,
+        task_name,
+        task_number,
+        location,
+        employee,
+        mobile_number,
+        team,
+        status,
+        cost,
+        currency,
+        date,
+        completion_date,
+        DATEDIFF(completion_date, date) AS days_to_complete,
+        image_url,
+        files
+    FROM 
+        tasks
+    WHERE 
+        status = 'تەواوکراوە'
+";
 
 if (!empty($from_date) && !empty($to_date)) {
     $query .= " AND date BETWEEN '$from_date' AND '$to_date'";
 }
-$query .= " ORDER BY completion_date DESC"; // ڕیزبەندی نوێترین بۆ کۆنترین
+
+$query .= " ORDER BY completion_date DESC";
 
 $result = mysqli_query($conn, $query);
 if (!$result) {
-    die("کێشە لە ناردنی داتا: " . mysqli_error($conn));
+    die("❌ کێشە لە ناردنی داتا: " . mysqli_error($conn));
 }
 ?>
+
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>کارە تەواوبووەکان ✅</title>
-    <link rel="stylesheet" href="../styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
+    <title>✅ کارە تەواوبووەکان</title>
+
+    <!-- Bootstrap RTL + TailwindCSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+    <!-- Custom Style -->
     <style>
+        @font-face {
+            font-family: 'Zain';
+            src: url('../../fonts/Zain.ttf');
+        }
+
         body {
-            direction: rtl;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-            background-color: #f9fafb;
-        }
-        .container {
-            width: 100%; /* Adjusted width */
-            margin: auto; /* Centered the container */
-            text-align: center;
-            margin-bottom: 200px;
-        }
-        h1 {
-            color: #007bff;
-        }
-        .filter-form {
-            width: 100%;
-            justify-content: center;
-            gap: 20px;
-            padding: 1px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            direction: rtl;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-        }
-        th, td {
-            padding: 12px;
-            text-align: right;
-            border-bottom: 1px solid #ddd;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-        }
-        th {
-            background: #007bff;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 5px;
-            font-size: 16px;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-            transition: background-color 0.3s, opacity 0.3s;
-        }
-        .btn-filter {
-            background-color: #0d6efd;
-            color: white;
-        }
-        .btn-reset {
-            background-color: #dc3545;
-            color: white;
-        }
-        .btn-export {
-            background-color: #0d6efd;
-            color: white;
-        }
-        .btn-view {
-            background-color: #0d6efd;
-            color: white;
-        }
-        /* فۆرم */
-        form {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
-        }
-
-        form input[type="date"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            flex: 1;
-            font-size: 16px;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-        }
-        .btn:hover {
-            opacity: 0.8;
-        }
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #0d6efd;
-            color: white;
-            padding: 15px;
-            border-radius: 50%;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            font-size: 24px;
-            transition: background-color 0.3s;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-        }
-        .fab:hover {
-            background: #0056b3;
-        }
-        @media screen and (max-width: 768px) {
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-        }
-        /* بەپێی بۆ پشتگیری Light & Dark Mode */
-        :root {
-            --popup-bg: white;
-            --popup-text: #333;
-            --popup-shadow: rgba(0, 0, 0, 0.2);
-            --popup-hover: #0056b3;
-        }
-
-        @media (prefers-color-scheme: dark) {
-        :root {
-                --popup-bg: #222;
-                --popup-text: white;
-                --popup-shadow: rgba(255, 255, 255, 0.2);
-                --popup-hover: #00b3ff;
-            }
-        }
-
-        /* پۆپ‌ئەپ (Modal) */
-        .popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        /* بۆکسەکە */
-        .popup-content {
-            background: var(--popup-bg);
-            color: var(--popup-text);
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 450px;
-            text-align: right;
-            position: relative;
-            box-shadow: 0 4px 12px var(--popup-shadow);
-            animation: scaleUp 0.3s ease-in-out;
-        }
-
-        /* ئەنیمەیشنی خستنە ناو */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes scaleUp {
-            from { transform: scale(0.9); }
-            to { transform: scale(1); }
-        }
-
-        /* دوگمەی داخستن */
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 22px;
-            cursor: pointer;
-            color: var(--popup-text);
-            background: transparent;
-            border: none;
-            transition: color 0.2s ease-in-out;
-        }
-
-        .close-btn:hover {
-            color: var(--popup-hover);
-        }
-
-        /* ستایلەکانی نیشانی کار */
-        .task-info {        
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-            font-size: 16px;
-            font-family: 'Zain', sans-serif; /* Updated font family */
-        }
-        .task-info:last-child {
-            border-bottom: none;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            cursor: pointer;
+            font-family: 'Zain', sans-serif;
+            background: linear-gradient(135deg, #dee8ff, #f5f7fa);
             color: #333;
         }
 
-        .btn-view {
-            background-color: #0d6efd;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Zain', sans-serif; /* Updated font family */
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            transition: all 0.4s ease;
         }
 
-        .btn-view:hover {
-            opacity: 0.8;
+        .glass:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(31, 38, 135, 0.15);
+        }
+        .dashboard-btn {
+            background-color: #4F46E5;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .dashboard-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-custom {
+            background-color: #4F46E5;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-custom:hover {
+            background-color: #6366F1;
+            transform: scale(1.05);
+        }
+        .task-compalte {
+            background-color:rgb(0, 167, 61);
+            color: #fff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        /* Table Styles */
+        table {
+            border-spacing: 0 10px;
+            width: 100%;
+
+        }
+        thead tr {
+            background-color: #4F46E5;
+            color: white;
+        }
+        tbody tr {
+            background-color: #fff;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        tbody tr:hover {
+            background-color: #f0f4ff;
+        }
+        td, th {
+            padding: 10px 4px;
+            text-align: center;
+        }
+        .table-actions button {
+            transition: all 0.2s ease-in-out;
+        }
+        .table-actions button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            tbody tr {
+                margin-bottom: 10px;
+            }
+            td {
+                padding: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                border-bottom: 1px solid #eee;
+            }
+            td:before {
+                content: attr(data-label);
+            }
+        }
+
+        /* Lightbox style */
+        #lightboxOverlay {
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        #lightboxImage {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #lightboxOverlay:hover #lightboxImage {
+            transform: scale(1.03);
         }
     </style>
 </head>
-<body>
 
-<div class="container">
-    <h1>کارە تەواوبووەکان ✅</h1>
+<body class="p-4">
 
-    <form method="GET" action="" class="filter-form">
-        <label>بەروار لە :</label>
-        <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
-        <label> بۆ :</label>
-        <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
-        <button type="submit" class="btn btn-filter">فلتەرکردن 🔍</button>
-        <button type="button" class="btn btn-reset" onclick="window.location.href='completed_tasks.php'">هەڵوەشاندنەوەی فلتەر 🔄</button>
-        <button type="button" class="btn btn-reset" onclick="window.location.href='../tasks.php'">◀ گەڕانەوە</button>
-    </form>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>ئەرك</th>
-                <th>ژمارە</th>
-                <th>شوێن</th>
-                <th>کارمەند</th>
-                <th>ژمارە مۆبایل </th>
-                <th>تیم</th>
-                <th>حاڵەت</th>
-                <th>نرخ</th>
-                <th>بەروار</th>
-                <th>تەواوکردن</th>
-                <th>(ڕۆژ)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-            <tr>
-                <td><?= htmlspecialchars($row['id']) ?></td>
-                <td><?= htmlspecialchars($row['task_name']) ?></td>
-                <td><?= htmlspecialchars($row['task_number']) ?></td>
-                <td><?= htmlspecialchars($row['location']) ?></td>
-                <td><?= htmlspecialchars($row['employee']) ?></td>
-                <td><?= htmlspecialchars($row['mobile_number']) ?></td>
-                <td><?= htmlspecialchars($row['team']) ?></td>
-                <td><?= htmlspecialchars($row['status']) ?></td>
-                <td><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
-                <td><?= htmlspecialchars($row['date']) ?></td>
-                <td><?= htmlspecialchars($row['completion_date']) ?></td>
-                <td><?= htmlspecialchars($row['days_to_complete']) ?></td>
-            <?php } ?>
-        </tbody>
-    </table>
-
-    <br>
-    <button onclick="window.location.href='export_completed_tasks.php?from_date=<?= htmlspecialchars($from_date) ?>&to_date=<?= htmlspecialchars($to_date) ?>'" class="btn btn-export">ئێکسپۆرتکردن بۆ ئێکسڵ 📤</button>
-</div>
-
-<div class="fab" onclick="window.location.href='add_task.php'">
-    <i class="fas fa-plus"></i>
-</div>
-
-<script>
-function showDetails(task) {
-    const details = `
-        <div class="popup">
-            <div class="popup-content">
-                <span class="close-btn" onclick="closePopup()">&times;</span>
-                <h2>زانیارییەکانی ئەرک</h2>
-                <p><strong>ID:</strong> ${task.id}</p>
-                <p><strong>ئەرك:</strong> ${task.task_name}</p>
-                <p><strong>ژمارە:</strong> ${task.task_number}</p>
-                <p><strong>شوێن:</strong> ${task.location}</p>
-                <p><strong>کارمەند:</strong> ${task.employee}</p>
-                <p><strong>ژمارە مۆبایل:</strong> ${task.mobile_number}</p>
-                <p><strong>تیم:</strong> ${task.team}</p>
-                <p><strong>حاڵەت:</strong> ${task.status}</p>
-                <p><strong>نرخ:</strong> ${task.cost} ${task.currency}</p>
-                <p><strong>بەروار:</strong> ${task.date}</p>
-                <p><strong>بەرواری تەواو کردن:</strong> ${task.completion_date}</p>
-                <p><strong>(ڕۆژ):</strong> ${task.days_to_complete}</p>
-                <img src="${task.image_url}" alt="Task Image" style="width: 500px; height: 500px;">
-            </div>
+    <!-- Lightbox overlay -->
+    <div id="lightboxOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center hidden z-50">
+        <div class="relative">
+            <img id="lightboxImage" src="" alt="Task Image"
+                 class="rounded-lg shadow-lg object-cover"
+                 style="width: 500px; height: 500px;" />
+            <button onclick="closeLightbox()" class="absolute top-2 left-2 text-white text-2xl bg-red-600 px-3 py-1 rounded-full">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', details);
-}
+    </div>
 
-function closePopup() {
-    const popup = document.querySelector('.popup');
-    if (popup) {
-        popup.remove();
-    }
-}
-</script>
+    <!-- Header -->
+    <header class="glass max-w-7xl mx-auto mb-6 flex justify-between items-center p-4">
+        <h1 class="text-3xl font-bold text-green-600"><i class="fas fa-check-circle"></i> کارە تەواوبووەکان</h1>
+        <div class="flex gap-3 items-center">
+            <span><i class="fas fa-user"></i> <?= htmlspecialchars($username); ?></span>
+            <a href="../tasks.php" class="btn btn-danger"><i class="fas fa-arrow-left"></i> کەڕانەوە</a>
+        </div>
+    </header>
+
+    <!-- Filter Form -->
+    <div class="glass max-w-7xl mx-auto mb-4 p-4 flex flex-wrap gap-2 justify-between items-center">
+        <form method="GET" class="flex flex-wrap gap-2 items-center w-full justify-between">
+            <div class="flex gap-2">
+                <label>لە:</label>
+                <input type="date" class="form-control rounded-lg border-2 border-indigo-300" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+                <label>بۆ:</label>
+                <input type="date" class="form-control rounded-lg border-2 border-indigo-300" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
+                <button type="submit" class="flex btn-custom form-control"><i class="fas fa-search"></i> فلتەر</button>
+            </div>
+       </form>
+    </div>
+
+    <!-- Table -->
+
+    <div class="glass max-w-7xl mx-auto p-4 overflow-x-auto ">
+        <table class="w-full text-s text-right text-gray-700 bg-white rounded-xl shadow-md border border-gray-200">
+            <thead class="text-s uppercase bg-indigo-600 text-white ">
+                <tr class="text-right">
+                <tr>
+                    <th>ID</th>
+                    <th>ئەرك</th>
+                    <th>ژمارە</th>
+                    <th>شوێن</th>
+                    <th>کارمەند</th>
+                    <th>ژ.مۆبایل</th>
+                    <th>تیم</th>
+                    <th>حاڵەت</th>
+                    <th>نرخ</th>
+                    <th>بەروار</th>
+                    <th>تەواوکردن</th>
+                    <th>ڕۆژ</th>
+                    <th>وێنە</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                <tr>
+                    <td><?= htmlspecialchars($row['id']) ?></td>
+                    <td><?= htmlspecialchars($row['task_name']) ?></td>
+                    <td><?= htmlspecialchars($row['task_number']) ?></td>
+                    <td><?= htmlspecialchars($row['location']) ?></td>
+                    <td><?= htmlspecialchars($row['employee']) ?></td>
+                    <td><?= htmlspecialchars($row['mobile_number']) ?></td>
+                    <td><?= htmlspecialchars($row['team']) ?></td>
+                    <td><span class="task-compalte"> <?= htmlspecialchars($row['status']) ?></span></td>
+                    <td><?= htmlspecialchars($row['cost']) ?> <?= htmlspecialchars($row['currency']) ?></td>
+                    <td><?= htmlspecialchars($row['date']) ?></td>
+                    <td><?= htmlspecialchars($row['completion_date']) ?></td>
+                    <td><?= htmlspecialchars($row['days_to_complete']) ?></td>
+                    <td>
+                        <?php if (!empty($row['files'])): ?>
+                            <button onclick="openLightbox('<?= htmlspecialchars($row['files']) ?>')" 
+                                    class="dashboard-btn bg-blue-600 hover:bg-blue-700 flex justify-right items-right gap-1 px-2 py-1 text-sm rounded-md transition">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        <?php else: ?>
+                            <span class="text-blue-300">نیە</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Export Button -->
+    <div class="flex justify-center mt-6">
+        <a href="export_completed_tasks.php?from_date=<?= htmlspecialchars($from_date) ?>&to_date=<?= htmlspecialchars($to_date) ?>"
+            class="btn btn-success"><i class="fas fa-file-export"></i> ئێکسپۆرتکردن بۆ Excel</a>
+    </div>
+
+    <!-- Lightbox Script -->
+    <script>
+        function openLightbox(imageUrl) {
+            const overlay = document.getElementById('lightboxOverlay');
+            const image = document.getElementById('lightboxImage');
+
+            image.src = imageUrl;
+            overlay.classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            const overlay = document.getElementById('lightboxOverlay');
+            const image = document.getElementById('lightboxImage');
+
+            overlay.classList.add('hidden');
+            image.src = '';
+        }
+    </script>
 
 </body>
 </html>

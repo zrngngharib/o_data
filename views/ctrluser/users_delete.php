@@ -7,6 +7,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Admin access only
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
+
 if (!isset($_GET['id'])) {
     echo "<script>alert('ID دیاری نەکرا!'); window.location.href='users.php';</script>";
     exit();
