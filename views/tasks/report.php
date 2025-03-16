@@ -38,15 +38,15 @@ if (!empty($employee_filter)) {
 $where_sql = implode(" AND ", $where_clauses);
 
 // هەموو ئەرکەکان بەپێی فلتەرەکان
-$query = "SELECT *, IF(status='Completed', completion_date, NULL) as completion_date FROM tasks WHERE $where_sql";
+$query = "SELECT *, IF(status='تەواوکراوە', completion_date, NULL) as completion_date FROM tasks WHERE $where_sql";
 $result = mysqli_query($db, $query);
 
 // ستاتیستیکی گشتی
 $query_count = "SELECT 
     (SELECT COUNT(*) FROM tasks WHERE $where_sql) as total,
-    (SELECT COUNT(*) FROM tasks WHERE status='Completed' AND $where_sql) as completed,
-    (SELECT COUNT(*) FROM tasks WHERE status='In Progress' AND $where_sql) as in_progress,
-    (SELECT COUNT(*) FROM tasks WHERE status='Pending' AND $where_sql) as pending
+    (SELECT COUNT(*) FROM tasks WHERE status='تەواوکراوە' AND $where_sql) as تەواوکراوە,
+    (SELECT COUNT(*) FROM tasks WHERE status='دەستپێکراوە' AND $where_sql) as دەستپێکراوە,
+    (SELECT COUNT(*) FROM tasks WHERE status='چاوەڕوانی' AND $where_sql) as چاوەڕوانی
 ";
 $stats_result = mysqli_query($db, $query_count);
 $stats = mysqli_fetch_assoc($stats_result);
@@ -216,15 +216,15 @@ $stats = mysqli_fetch_assoc($stats_result);
             </div>
             <div class="glass p-6 text-center">
                 <h2 class="text-lg font-bold"><i class="fas fa-check"></i> تەواوبووەکان</h2>
-                <p class="text-2xl text-green-600"><?= $stats['completed'] ?></p>
+                <p class="text-2xl text-green-600"><?= $stats['تەواوکراوە'] ?></p>
             </div>
             <div class="glass p-6 text-center">
                 <h2 class="text-lg font-bold"><i class="fas fa-spinner"></i> دەستپێکردوەکان</h2>
-                <p class="text-2xl text-yellow-500"><?= $stats['in_progress'] ?></p>
+                <p class="text-2xl text-yellow-500"><?= $stats['دەستپێکراوە'] ?></p>
             </div>
             <div class="glass p-6 text-center">
                 <h2 class="text-lg font-bold"><i class="fas fa-hourglass-half"></i> چاوەڕوانەکان</h2>
-                <p class="text-2xl text-red-600"><?= $stats['pending'] ?></p>
+                <p class="text-2xl text-red-600"><?= $stats['چاوەڕوانی'] ?></p>
             </div>
         </div>
     </div>
@@ -265,15 +265,17 @@ $stats = mysqli_fetch_assoc($stats_result);
                         <td><?= htmlspecialchars($row['location']) ?></td>
                         <td><?= htmlspecialchars($row['employee']) ?></td>
                         <td data-label="تیم">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium
-                                <?= $row['team'] === 'Internal' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
-                                <?= htmlspecialchars($row['team']) ?>
-                            </span>
+                            <span class="px-2 py-1 rounded-full text-xs font-medium
+                                    <?= $row['team'] === 'تەکنیکی' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
+                                    <?= htmlspecialchars($row['team']) ?>
+                                </span>
                         </td>
                         <td data-label="حاڵەت">
                             <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                <?= $row['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    ($row['status'] === 'In Progress' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') ?>">
+                                <?= $row['status'] === 'چاوەڕوانی' ? 'bg-yellow-100 text-yellow-800' :
+                                    ($row['status'] === 'دەستپێکراوە' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') ?>">
+                                <i class="fas <?= $row['status'] === 'چاوەڕوانی' ? 'fa-hourglass-half' :
+                                    ($row['status'] === 'دەستپێکراوە' ? 'fa-spinner' : 'fa-check') ?>"></i>
                                 <?= htmlspecialchars($row['status']) ?>
                             </span>
                         </td>

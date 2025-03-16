@@ -182,16 +182,41 @@ $result = mysqli_query($conn, $query);
         </div>
         <form method="GET" action="tasks.php" class="flex gap-2">
             <input type="text" name="search" class="form-control" placeholder="🔍 گەڕان..." value="<?= htmlspecialchars($search); ?>">
-            <select name="sort" class="form-select w-auto">
+            <select name="sort" class="form-select w-auto" id="sort-select">
                 <option value="newest">نوێترین</option>
                 <option value="oldest">کۆنترین</option>
                 <option value="چاوەڕوانی">چاوەڕوانی</option>
                 <option value="دەستپێکراوە">دەستپێکراوە</option>
             </select>
-            <button type="submit" class="dashboard-btn"><i class="fas fa-search"></i> گەڕان</button>
+            <button type="submit" class="dashboard-btn"> گەڕان</button>
         </form>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortSelect = document.getElementById('sort-select');
+            const options = sortSelect.options;
+
+            for (let i = 0; i < options.length; i++) {
+                let icon;
+                switch (options[i].value) {
+                    case 'newest':
+                        icon = '<i class="fas fa-sort-amount-down"></i>';
+                        break;
+                    case 'oldest':
+                        icon = '<i class="fas fa-sort-amount-up"></i>';
+                        break;
+                    case 'چاوەڕوانی':
+                        icon = '<i class="fas fa-hourglass-half"></i>';
+                        break;
+                    case 'دەستپێکراوە':
+                        icon = '<i class="fas fa-play"></i>';
+                        break;
+                }
+                options[i].innerHTML = icon + ' ' + options[i].textContent;
+            }
+        });
+    </script>
     <!-- Table -->
     <form method="POST" action="tasks/bulk_action.php" onsubmit="return confirm('دڵنیایت؟');">
     <div class="glass max-w-7xl mx-auto p-4 overflow-x-auto rounded-20">
@@ -214,7 +239,7 @@ $result = mysqli_query($conn, $query);
                     <td data-label="مۆبایل"><?= htmlspecialchars($row['mobile_number']) ?></td>
                     <td data-label="تیم">
                         <span class="px-2 py-1 rounded-full text-xs font-medium
-                            <?= $row['team'] === 'Internal' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
+                            <?= $row['team'] === 'تەکنیکی' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800' ?>">
                             <?= htmlspecialchars($row['team']) ?>
                         </span>
                     </td>
@@ -222,6 +247,8 @@ $result = mysqli_query($conn, $query);
                         <span class="px-2 py-1 rounded-full text-xs font-semibold
                             <?= $row['status'] === 'چاوەڕوانی' ? 'bg-yellow-100 text-yellow-800' :
                                 ($row['status'] === 'دەستپێکراوە' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') ?>">
+                            <?= $row['status'] === 'چاوەڕوانی' ? '<i class="fas fa-hourglass-half"></i>' :
+                                ($row['status'] === 'دەستپێکراوە' ? '<i class="fas fa-play"></i>' : '<i class="fas fa-check"></i>') ?>
                             <?= htmlspecialchars($row['status']) ?>
                         </span>
                     </td>
@@ -235,6 +262,7 @@ $result = mysqli_query($conn, $query);
                         <?php else: ?>
                             <button type="button" disabled class="dashboard-btn bg-gray-400"><i class="fas fa-eye-slash"></i></button>
                         <?php endif; ?>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
             </tbody>

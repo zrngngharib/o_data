@@ -135,7 +135,7 @@ while ($r = mysqli_fetch_assoc($monthlyTasksQuery)) {
 
     <!-- Header -->
     <header class="glass max-w-7xl w-full mx-auto mb-6 flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse"><i class="fas fa-chart-line"></i> داشبۆرد - O_Data</h1>
+        <h1 class="text-3xl font-bold text-indigo-700 animate-pulse"><i class="fas fa-chart-line"></i> داشبۆرد</h1>
         <div class="flex gap-3 items-center">
             <span class="text-sm text-gray-700"><i class="fas fa-user"></i> <?= htmlspecialchars($username); ?></span>
             <a href="../views/ctrluser/logout.php" class="btn btn-danger text-white rounded-pill"><i class="fas fa-sign-out-alt"></i> دەرچوون</a>

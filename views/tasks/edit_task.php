@@ -130,8 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div>
                 <label class="form-label">👥 تیم</label>
                 <select name="team" class="form-select" required>
-                    <option value="Internal" <?= $task['team'] == 'تەکنیکی' ? 'selected' : '' ?>>تەکنیکی</option>
-                    <option value="External" <?= $task['team'] == 'دەرەکی' ? 'selected' : '' ?>>دەرەکی</option>
+                    <option value="تەکنیکی" <?= $task['team'] == 'تەکنیکی' ? 'selected' : '' ?>>تەکنیکی</option>
+                    <option value="دەرەکی" <?= $task['team'] == 'دەرەکی' ? 'selected' : '' ?>>دەرەکی</option>
                 </select>
             </div>
 
